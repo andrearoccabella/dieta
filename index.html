@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dieta Andrea e Silvia</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#f3f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121815" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dieta">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: colonna unica stile app; selettore persona in alto; vista giorno con pasti da spuntare, vista spesa con filtri, fuori dieta e lista per reparto */
+:root{
+  --bg:#f3f5f1; --surface:#ffffff; --ink:#1c2a22; --muted:#5f6f65; --line:#dbe2dc;
+  --accent:#2f5d46; --accent-soft:#e2ece5; --leaf:#7fa38d; --warn:#b5652a; --done:#9aa89f;
+  --pa:#2f5d46; --ps:#8a4a6b; --ps-soft:#f1e4ea;
+  --m-col:#a86a12; --m-col-soft:#fbf0d9; --m-snack:#24806f; --m-snack-soft:#ddf1ec;
+  --m-pranzo:#b8502a; --m-pranzo-soft:#fbe6dc; --m-cena:#4356a3; --m-cena-soft:#e4e8f8;
+  --m-other:#66726b; --m-other-soft:#edf0ed;
+  --display:"Young Serif",Georgia,serif; --body:"Figtree",system-ui,-apple-system,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121815; --surface:#1a221d; --ink:#e4ece6; --muted:#97a69c; --line:#2c3831;
+  --accent:#8cc4a3; --accent-soft:#223229; --leaf:#5f8a72; --warn:#e09a62; --done:#5e6b63;
+  --pa:#8cc4a3; --ps:#d79bb9; --ps-soft:#33222b;
+  --m-col:#e6b45e; --m-col-soft:#2e2616; --m-snack:#6cc7b4; --m-snack-soft:#152d28;
+  --m-pranzo:#ee9572; --m-pranzo-soft:#33201a; --m-cena:#9eabeb; --m-cena-soft:#1e2338;
+  --m-other:#a5b1a9; --m-other-soft:#212924; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121815; --surface:#1a221d; --ink:#e4ece6; --muted:#97a69c; --line:#2c3831;
+  --accent:#8cc4a3; --accent-soft:#223229; --leaf:#5f8a72; --warn:#e09a62; --done:#5e6b63;
+  --pa:#8cc4a3; --ps:#d79bb9; --ps-soft:#33222b;
+  --m-col:#e6b45e; --m-col-soft:#2e2616; --m-snack:#6cc7b4; --m-snack-soft:#152d28;
+  --m-pranzo:#ee9572; --m-pranzo-soft:#33201a; --m-cena:#9eabeb; --m-cena-soft:#1e2338;
+  --m-other:#a5b1a9; --m-other-soft:#212924; color-scheme:dark}
+body.silvia{--accent:var(--ps); --accent-soft:var(--ps-soft)}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;padding:0 16px}
+.wrap{max-width:680px;margin:0 auto;padding-block:20px 60px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:400;font-size:1.7rem;margin:0;line-height:1.1;text-wrap:balance}
+.sub{color:var(--muted);font-size:.85rem;margin:2px 0 0}
+.views{display:flex;background:var(--accent-soft);border-radius:999px;padding:3px}
+.views button{border:0;background:transparent;color:var(--accent);font:600 .85rem var(--body);padding:7px 14px;border-radius:999px;cursor:pointer}
+.views button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.who{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.who button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 12px;cursor:pointer;text-align:left;font-family:var(--body);display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.who button b{font-size:.95rem}
+.who button span{font:.75rem var(--mono);color:var(--muted)}
+.who button[aria-pressed="true"][data-p="andrea"]{border-color:var(--pa);box-shadow:inset 0 0 0 1px var(--pa)}
+.who button[aria-pressed="true"][data-p="silvia"]{border-color:var(--ps);box-shadow:inset 0 0 0 1px var(--ps)}
+.who button[data-p="andrea"] b{color:var(--pa)} .who button[data-p="silvia"] b{color:var(--ps)}
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line)}
+.weeks{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.seg button,.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 .82rem var(--body);padding:6px 11px;border-radius:8px;cursor:pointer}
+.seg button[aria-pressed="true"],.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.wk{display:flex;align-items:center;gap:8px}
+.wklabel{display:flex;flex-direction:column;line-height:1.2;min-width:8.5em}
+.wklabel b{font-size:.92rem;font-weight:600}
+.wklabel span{font:.72rem var(--mono);color:var(--muted)}
+.arrow{font-size:1.15rem;line-height:1;padding:6px 13px}
+.arrow:disabled{opacity:.35;cursor:default}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.days button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;font-family:var(--body)}
+.days button b{font-size:.8rem;font-weight:600}
+.days button span{font:400 .72rem var(--mono);color:var(--muted)}
+.days button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.days button[aria-pressed="true"] b,.days button[aria-pressed="true"] span{color:var(--bg)}
+.days button.today,.grid14 .chip.today{box-shadow:inset 0 -3px 0 var(--warn)}
+.banner{font-size:.85rem;color:var(--muted);background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.dayhead h2{font-family:var(--display);font-weight:400;font-size:1.35rem;margin:0}
+.prog{font:500 .82rem var(--mono);color:var(--muted)}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.meal,.cat{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.meal h3,.cat h3{margin:0;padding:10px 14px 4px;font:600 .72rem var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--leaf);display:flex;justify-content:space-between;gap:8px}
+.meal h3 em{font-style:normal;color:var(--muted);letter-spacing:0;text-transform:none;font-weight:500}
+.item{display:grid;grid-template-columns:22px 1fr auto auto;gap:10px;align-items:start;padding:8px 14px;border-top:1px solid var(--line);cursor:pointer}
+.row{border-top:1px solid var(--line);padding-bottom:4px}
+.meal{--mc:var(--m-other);--mcs:var(--m-other-soft);border-top:4px solid var(--mc)}
+.meal.m-col{--mc:var(--m-col);--mcs:var(--m-col-soft)}
+.meal.m-snack{--mc:var(--m-snack);--mcs:var(--m-snack-soft)}
+.meal.m-pranzo{--mc:var(--m-pranzo);--mcs:var(--m-pranzo-soft)}
+.meal.m-cena{--mc:var(--m-cena);--mcs:var(--m-cena-soft)}
+.meal h3{background:var(--mcs);color:var(--mc);padding:9px 14px;margin-bottom:4px;font-size:.76rem}
+.meal h3 em{color:var(--mc);opacity:.85}
+.meal .item input{accent-color:var(--mc)}
+#meals{gap:14px!important}
+.meal h3+.row{border-top:0}
+.row .item{border-top:0;padding-bottom:4px}
+.item label.nm{cursor:pointer}
+.ingl{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:2px 14px 2px 46px;font-size:.84rem;color:var(--muted)}
+.ingl .in{min-width:0;overflow-wrap:anywhere}
+.ingl i{font:normal .8rem var(--mono)}
+.sb{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;width:30px;height:26px;cursor:pointer;font-size:.9rem;line-height:1;align-self:center}
+.sb:hover{border-color:var(--warn);color:var(--warn)}
+.sb.has{border-color:var(--warn);color:var(--warn);background:var(--bg)}
+.subnote{display:block;color:var(--warn);font-weight:600;font-size:.84rem}
+.subbed .orig{text-decoration:line-through;color:var(--done)}
+.subform{display:grid;grid-template-columns:1fr 96px 26px;gap:6px;align-items:center;padding:6px 14px 10px 46px}
+.subform .del{padding:0;width:26px}
+.ghostdel{visibility:hidden}
+.shint{grid-column:1/-1;font-size:.76rem;color:var(--muted)}
+.subform .acts{grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.subform .btn{padding:6px 12px}
+.row.on .nm,.row.on .q,.row.on .ingl{color:var(--done)}
+.row.on .nm .orig,.row.on>.item>.q{text-decoration:line-through}
+.days-line{font:.74rem var(--mono);color:var(--muted);margin-top:3px;font-weight:400}
+.cat.subs{border-color:var(--warn)} .cat.subs h3{color:var(--warn)}
+.srow{grid-template-columns:1fr auto}
+.dl{color:var(--m-cena);font-weight:600}
+.srow .sq{text-align:right;white-space:normal;color:var(--ink);line-height:1.5}
+.oggi{color:var(--bg);background:var(--warn);font-weight:600;padding:0 5px;border-radius:4px;font-family:var(--body);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
+.srow .nm b{font-weight:600;color:var(--ink)}
+.meal h3+.item,.cat h3+.item{border-top:0}
+.item input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--accent);cursor:pointer}
+.item .nm{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.item .q{font:500 .85rem var(--mono);color:var(--accent);white-space:nowrap;text-align:right}
+.ings{display:flex;flex-direction:column;gap:1px;margin-top:3px}
+.ings span{font-size:.82rem;color:var(--muted);display:flex;justify-content:space-between;gap:10px}
+.ings span i{font:normal .8rem var(--mono)}
+.tip{display:block;font-size:.78rem;font-weight:400;color:var(--warn);margin-top:3px}
+.split{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px;font:400 .75rem var(--mono);font-weight:400}
+.split .a{color:var(--pa)} .split .s{color:var(--ps)}
+.item.on .nm,.item.on .q,.item.on .ings{color:var(--done);text-decoration:line-through}
+.item.on .split span{color:var(--done)}
+.macros{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.macros div{display:flex;flex-direction:column;gap:2px}
+.macros small{font:600 .68rem var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.macros b{font:500 1.05rem var(--mono)}
+.macros span{font:.72rem var(--mono);color:var(--muted)}
+.notes{font-size:.82rem;color:var(--muted);margin:0}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-weight:600;font-size:.88rem}
+details ul{margin:8px 0 2px;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+.set{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;margin-top:8px}
+input[type=date],input[type=text]{font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-width:0}
+/* spesa */
+.picker{display:flex;flex-direction:column;gap:10px}
+.picker h4{margin:0;font:600 .72rem var(--body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.grid14{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.grid14 .chip{padding:6px 0;display:flex;flex-direction:column;align-items:center;font-size:.78rem}
+.grid14 .chip span{font:.68rem var(--mono);opacity:.8}
+.extra{border-color:var(--warn)}
+.extra h3{color:var(--warn)}
+.addrow{display:grid;grid-template-columns:1fr 110px auto;gap:6px;padding:6px 14px 10px}
+.addrow .btn{padding:7px 12px}
+.del{border:0;background:transparent;color:var(--muted);font-size:1.1rem;line-height:1;cursor:pointer;padding:0 4px}
+.del:hover{color:var(--warn)}
+.extra .item{grid-template-columns:22px 1fr auto auto}
+.minor{border:0;background:transparent;color:var(--warn);font:600 .72rem var(--body);letter-spacing:0;text-transform:none;cursor:pointer;padding:0}
+.taken{background:transparent;border-style:dashed}
+.taken h3{color:var(--muted)}
+.trow{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;padding:7px 14px;border-top:1px solid var(--line)}
+.trow .nm{color:var(--muted);min-width:0;overflow-wrap:anywhere}
+.trow .q{font:.8rem var(--mono);color:var(--done);white-space:nowrap}
+.back{border:1px solid var(--accent);background:transparent;color:var(--accent);font:600 .78rem var(--body);padding:4px 10px;border-radius:999px;cursor:pointer}
+.tag{font:600 .62rem var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--warn);margin-left:6px}
+.search{position:relative;display:flex;align-items:center}
+.search[hidden]{display:none}
+.shopfind{display:flex;flex-direction:column;gap:8px}
+.search.small input{font-size:16px;padding:8px 40px 8px 36px;border-radius:10px}
+#shopQClear{position:absolute;right:6px;border:0;background:transparent;color:var(--muted);font-size:1.3rem;line-height:1;padding:6px 10px;cursor:pointer}
+.findres{border-color:var(--accent)}
+.findnone{padding:0 2px}
+.search svg{position:absolute;left:12px;width:17px;height:17px;color:var(--muted);pointer-events:none}
+.search input{width:100%;font:inherit;font-size:16px;padding:10px 40px 10px 38px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);-webkit-appearance:none;appearance:none}
+.search input::-webkit-search-cancel-button{display:none}
+.search input:focus{outline:2px solid var(--accent);outline-offset:1px}
+#qClear{position:absolute;right:6px;border:0;background:transparent;color:var(--muted);font-size:1.3rem;line-height:1;padding:6px 10px;cursor:pointer}
+.res{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.res h3{margin:0;padding:10px 14px 6px;font:600 .95rem var(--body);display:flex;justify-content:space-between;gap:8px}
+.res h3 em{font:500 .75rem var(--mono);font-style:normal;color:var(--muted)}
+.hit{display:grid;grid-template-columns:62px 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;padding:8px 14px;cursor:pointer}
+.hit:hover{background:var(--bg)}
+.gopen{padding:0 14px 8px}
+.gbtn{border:1px dashed var(--warn);background:transparent;color:var(--warn);font:600 .8rem var(--body);padding:6px 12px;border-radius:999px;cursor:pointer}
+.gs{display:grid;grid-template-columns:62px 1fr auto;gap:10px;align-items:center;padding:6px 14px;background:var(--bg);font-size:.86rem}
+.gs .pp{font:600 .72rem var(--body);text-transform:uppercase;letter-spacing:.06em}
+.gs .pp.andrea{color:var(--pa)} .gs .pp.silvia{color:var(--ps)}
+.gs b{color:var(--warn);font-weight:600}
+.gform{padding:8px 14px 12px;border-top:1px solid var(--line)}
+.gwho{grid-column:1/-1;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:.84rem;color:var(--muted)}
+.gerr{grid-column:1/-1;color:var(--warn);font-size:.8rem;min-height:0}
+.hit .q.struck{text-decoration:line-through;color:var(--done)}
+.hit .pp{font:600 .72rem var(--body);text-transform:uppercase;letter-spacing:.06em}
+.hit .pp.andrea{color:var(--pa)} .hit .pp.silvia{color:var(--ps)}
+.hit .wh{min-width:0;font-size:.88rem}
+.hit .wh small{display:block;color:var(--muted);font-size:.78rem}
+.hit .q{font:500 .82rem var(--mono);color:var(--muted);white-space:nowrap}
+.trow .nm small{display:block;font-size:.76rem;color:var(--muted);margin-top:1px}
+.keep{border:0;background:transparent;color:var(--muted);font:600 .76rem var(--body);cursor:pointer;padding:4px 2px;text-decoration:underline;text-underline-offset:2px}
+.views button.dot{position:relative}
+.views button.dot::after{content:"";position:absolute;top:4px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--warn)}
+.reset{width:100%;padding:12px;border-style:dashed}
+.reset[data-armed]{background:var(--warn);border-color:var(--warn);color:var(--bg);border-style:solid}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--bg);font:600 .85rem var(--body);padding:8px 14px;border-radius:8px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.toast{font-size:.82rem;color:var(--accent);min-height:1em}
+.undo{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translate(-50%,24px);opacity:0;pointer-events:none;transition:transform .18s,opacity .18s;
+  z-index:20;display:flex;align-items:center;gap:14px;max-width:calc(100% - 24px);width:max-content;padding:10px 10px 10px 16px;border-radius:12px;background:var(--ink);color:var(--bg);box-shadow:0 6px 20px rgba(0,0,0,.22);font:500 .9rem var(--body,inherit)}
+.undo.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.undo .ut{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.undo button{flex:none;border:0;border-radius:8px;padding:8px 12px;background:var(--accent-soft);color:var(--accent);font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer}
+.empty{color:var(--muted);text-align:center;padding:24px;background:var(--surface);border:1px dashed var(--line);border-radius:12px}
+.hint{color:var(--muted);font-size:.82rem;padding:2px 14px 10px}
+textarea.copy{position:absolute;left:-9999px}
+@media (max-width:420px){.subform{grid-template-columns:1fr 76px 26px;padding-left:24px} .macros{grid-template-columns:repeat(2,1fr)} h1{font-size:1.45rem} .addrow{grid-template-columns:1fr 80px} .addrow .btn{grid-column:1/-1}}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Dieta Andrea e Silvia</h1>
+      <p class="sub">Piani Dott.ssa Caldini · 16 settimane, il piano si ripete ogni 2</p>
+    </div>
+    <div class="views" role="group" aria-label="Vista">
+      <button id="v-day" aria-pressed="true">Dieta</button>
+      <button id="v-shop" aria-pressed="false">Spesa</button>
+    </div>
+  </header>
+
+  <div class="search" role="search" id="mainSearch">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+    <input type="search" id="q" placeholder="Cerca un alimento o sostituiscilo in tutti i giorni" aria-label="Cerca un alimento" autocomplete="off">
+    <button id="qClear" type="button" aria-label="Cancella ricerca" hidden>×</button>
+  </div>
+  <section id="searchView" hidden style="flex-direction:column;gap:10px"></section>
+
+  <section id="dayView" style="display:flex;flex-direction:column;gap:14px">
+    <div class="nav">
+      <div class="who" role="group" aria-label="Di chi è il piano">
+        <button data-p="andrea" id="who-andrea"><b>Andrea</b><span>2.100 kcal</span></button>
+        <button data-p="silvia" id="who-silvia"><b>Silvia</b><span>1.650 kcal</span></button>
+      </div>
+      <div class="weeks">
+        <div class="wk">
+          <button class="chip arrow" id="wPrev" aria-label="Settimana precedente">‹</button>
+          <div class="wklabel"><b id="wkNum"></b><span id="wkPlan"></span></div>
+          <button class="chip arrow" id="wNext" aria-label="Settimana successiva">›</button>
+        </div>
+        <button class="chip" id="goToday">Vai a oggi</button>
+      </div>
+      <div class="days" id="days"></div>
+    </div>
+    <div id="banner" class="banner" hidden></div>
+    <div class="dayhead"><h2 id="dayTitle"></h2><span class="prog" id="prog"></span></div>
+    <div class="bar"><i id="progBar"></i></div>
+    <div id="meals" style="display:flex;flex-direction:column;gap:10px"></div>
+    <div class="macros" id="macros"></div>
+    <details>
+      <summary>Regole del piano</summary>
+      <ul>
+        <li>Pesa tutto a crudo e solo la parte edibile (carne senza ossa, frutta senza buccia e semi, pesce pulito).</li>
+        <li>Non saltare pasti, non cambiare le quantità e non invertire i giorni.</li>
+        <li>Puoi unire le portate dello stesso pasto in un unico piatto, senza toccare le quantità.</li>
+        <li>Gli alimenti di "Arco della giornata" si mangiano quando vuoi, ma vanno mangiati.</li>
+        <li>Acqua naturale: almeno 1–1,5 litri al giorno, di più con caldo o allenamento.</li>
+        <li>Olio: 1 cucchiaino = circa 4 g. Marmellata: 1 cucchiaino = circa 10 g. Yogurt: 1 vasetto = 125 g. Uovo medio = 60 g.</li>
+        <li>Cotture: griglia, forno, padella, umido, cartoccio, lesso, vapore. Sale al minimo, spezie e aromi liberi.</li>
+      </ul>
+    </details>
+    <details>
+      <summary>Data di inizio del piano di <span id="startWho"></span></summary>
+      <div class="set">
+        <span>Lunedì della settimana 1: <b id="startDate"></b></span>
+      </div>
+      <p class="sub" style="margin-top:6px">Da qui partono le 16 settimane. La data è fissata nell'app, quindi è la stessa su ogni telefono.</p>
+    </details>
+  </section>
+
+  <section id="shopView" hidden style="flex-direction:column;gap:14px">
+    <div class="shopfind">
+      <div class="search small">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        <input type="search" id="shopQ" placeholder="Cerca un prodotto da rimettere in lista" aria-label="Cerca nella spesa" autocomplete="off">
+        <button id="shopQClear" type="button" aria-label="Cancella ricerca" hidden>×</button>
+      </div>
+      <div id="shopFindRes"></div>
+    </div>
+
+    <div class="picker">
+      <h4>Per chi fai la spesa</h4>
+      <div class="seg" role="group" aria-label="Per chi" id="shopWho">
+        <button data-w="both">Entrambi</button><button data-w="andrea">Solo Andrea</button><button data-w="silvia">Solo Silvia</button>
+      </div>
+      <h4>Giorni da comprare</h4>
+      <div class="chips">
+        <button class="chip" data-pre="next3">Prossimi 3 giorni</button>
+        <button class="chip" data-pre="next7">Prossimi 7 giorni</button>
+        <button class="chip" data-pre="this">Questa settimana</button>
+        <button class="chip" data-pre="next">Prossima settimana</button>
+        <button class="chip" data-pre="none">Nessuno</button>
+      </div>
+      <div class="grid14" id="shopDays"></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="copyList">Copia lista</button>
+      <span class="toast" id="toast"></span>
+    </div>
+
+    <div class="cat extra">
+      <h3>Fuori dieta</h3>
+      <form class="addrow" id="extraForm" autocomplete="off">
+        <input type="text" id="extraName" placeholder="Prodotto, es. detersivo" aria-label="Prodotto">
+        <input type="text" id="extraQty" placeholder="Quantità" aria-label="Quantità">
+        <button class="btn" type="submit">Aggiungi</button>
+      </form>
+      <div id="extraList"></div>
+    </div>
+
+    <div id="shopList" style="display:flex;flex-direction:column;gap:10px"></div>
+
+    <div class="cat taken" id="takenBox" hidden>
+      <h3><span>Già presi · <span id="takenCount"></span></span></h3>
+      <div class="hint">Restano qui finché non li rimetti in lista, così vale anche per le prossime spese.</div>
+      <div id="takenList"></div>
+    </div>
+    <button class="btn ghost reset" id="resetAll" type="button">Reset: rimetti tutto nella lista</button>
+    <p class="notes">Le quantità della dieta sono a crudo, parte edibile. Per orata e sogliola intere aggiungi circa il 15% (lisca); per la coscia di pollo con l'osso circa il 30%.</p>
+  </section>
+</div>
+
+<div class="undo" id="undoBar" role="status" aria-live="polite"><span class="ut" id="undoTxt"></span><button type="button" id="undoBtn">Annulla</button></div>
+<script>
+const i=(n,q,u='g',tip)=>({n,q,u,tip});
+const D=(n,ings,tip)=>({n,ings,tip});
+// ogni persona può avere più diete in sequenza: ognuna vale dalla sua data "from" (un lunedì) fino all'inizio della successiva
+const PEOPLE={
+ andrea:{name:'Andrea',def:'2026-10-12',phases:[
+  {from:'2026-10-12',kcal:'2.100',label:'',...(()=>{
+const COL_A=[i('Yogurt alla frutta parz. scremato',1,'vasetto'),i('Muesli',60),i('Caffè',1,'tazzina')];
+const COL_B=[i('Yogurt alla frutta parz. scremato',1,'vasetto'),D('Pane e marmellata',[i('Pane bianco',70),i('Marmellata con fruttosio',4,'cucchiaino')]),i('Caffè',1,'tazzina')];
+const CHOC=[i('Cioccolato fondente',30)];
+const PARM=[i('Parmigiano',30)];
+const day=(col,mm,pr,me,ce,arco,tot)=>({meals:[['Colazione',col],['Metà mattina',mm],['Pranzo',pr],['Merenda',me],['Cena',ce],['Spuntino serale',CHOC],['Arco della giornata',arco],['Pasto aggiuntivo',PARM]],tot});
+const pan=(t,g)=>i(t==='a'?'Pane arabo':'Pane integrale',g);
+const olio=q=>i('Olio extra vergine di oliva',q,'cucchiaino');
+const sp=['Salsa di pomodoro',80];
+
+const PLAN=[[ // settimana 1
+ day(COL_A,[i('Uva',70)],[i('Petto di pollo',350),i('Insalata mista',200,'g','Scegli tra insalate e ortaggi del piano, niente legumi')],[i('Prugne',150),i("Tonno sott'olio",50,'g',"Scola bene l'olio")],
+   [D('Passato di lenticchie',[i('Lenticchie secche',120)],'Ammollo qualche ora, cottura e poi frullate'),D('Uova strapazzate',[i('Uova',3,'n')]),i('Indivia',100)],[pan('a',90),olio(3)],[178,221,62,2157]),
+ day(COL_B,[i('Ananas',140)],[D('Pasta al pomodoro',[i('Pasta di semola',120),i(...sp)]),i('Carote',150)],[i('Pere',150)],
+   [i('Orata',350,'g','Pesata pulita: se intera aggiungi il 15% per la lisca'),i('Lattuga',100)],[pan('i',90),olio(4)],[118,283,62,2163]),
+ day(COL_A,[i('Cachi',100)],[D('Minestrone con pasta',[i('Pastina',120),i('Misto di verdure cotte',200)],'Verdure del piano, niente patate o legumi'),i('Indivia',100)],[i('Mele',100),i('Yogurt alla frutta parz. scremato',1,'vasetto')],
+   [i('Manzo magro',350),i('Bieta',200)],[pan('i',80),olio(4.5)],[128,276,61,2165]),
+ day(COL_A,[i('Banane',50)],[D('Riso al pomodoro',[i('Riso',120),i(...sp)]),i('Feta',90),i('Rapa',200)],[i('Mele',100)],
+   [D('Passato di zucchine',[i('Zucchine',200)]),D("Insalatona con tonno sott'olio e patate",[i("Tonno sott'olio",150),i('Misto di verdure crude',200),i('Patate',100)],'Almeno 3 ortaggi diversi; patate lesse a dadini')],[pan('i',90),olio(2)],[99,279,69,2136]),
+ day(COL_B,[i('Melone invernale',200)],[D('Pasta in bianco',[i('Pasta di semola',120)]),i('Indivia',100)],[i('Ananas',140),i('Fesa di tacchino arrosto',50)],
+   [i('Salmone fresco',350,'g','Fresco o surgelato, non affumicato né in scatola'),i('Patate',200)],[pan('i',90),olio(2)],[123,301,76,2378]),
+ day(COL_A,[i('Mele',100)],[i("Tonno sott'olio",150,'g',"Scola bene l'olio"),i('Rapa',200)],[i('Pere',150)],
+   [i('Petto di pollo',350),i('Lattuga',100)],[pan('a',80),olio(4.5)],[153,159,61,1798]),
+ day(COL_A,[i('Banane',50)],[D('Pasta integrale, pomodoro e piselli',[i('Pasta integrale',120),i(...sp),i('Piselli freschi',40)]),i('Cipolle',200)],[i('Pere',150)],
+   [D('Passato di verdure',[i('Misto di verdure cotte',200)],'Verdure del piano, niente patate o legumi'),i('Stracchino delattosato',150),i('Insalata mista',100)],[pan('a',90),olio(2)],[78,261,70,1986]),
+],[ // settimana 2
+ day(COL_A,[i('Uva',70)],[i('Coscia di pollo',260,'g',"Senza pelle; se la pesi con l'osso aggiungi il 30%"),i('Indivia',100)],[i('Prugne',150),i("Tonno sott'olio",50,'g',"Scola bene l'olio")],
+   [D('Passato di fagioli',[i('Fagioli secchi',100)],'Ammollo 12 ore, meglio in pentola a pressione'),D('Uova alla coque',[i('Uova',3,'n')]),i('Lattuga',100)],[pan('a',90),olio(3)],[140,205,77,2074]),
+ day(COL_B,[i('Ananas',140)],[D('Pasta al parmigiano',[i('Pasta di semola',110),i('Parmigiano grattugiato',15)]),i('Insalata mista',200)],[i('Pere',150)],
+   [i('Sogliola',350,'g','Pesata pulita: se intera aggiungi il 15% per la lisca'),i('Carote',150)],[pan('i',90),olio(3.5)],[111,272,48,1961]),
+ day(COL_A,[i('Cachi',100)],[D('Passato di verdure con pasta',[i('Pastina',110),i('Misto di verdure cotte',200)],'Verdure del piano, niente patate o legumi'),i('Cipolle',200)],[i('Mele',100),i('Yogurt alla frutta parz. scremato',1,'vasetto')],
+   [i('Vitello magro',390),i('Indivia',100)],[pan('i',80),olio(4.5)],[132,274,59,2151]),
+ day(COL_A,[i('Banane',50)],[D('Riso ai funghi',[i('Riso',120),i('Funghi',50)]),i('Feta',90),i('Rapa',200)],[i('Mele',100)],
+   [D('Passato di verdure',[i('Misto di verdure cotte',200)],'Verdure del piano, niente patate o legumi'),D('Insalatona con tonno al naturale',[i('Tonno al naturale',130),i('Misto di verdure crude',300)],'Almeno 3 ortaggi diversi')],[pan('i',90),olio(2)],[94,268,54,1938]),
+ day(COL_B,[i('Melone invernale',200)],[D('Pasta ai frutti di mare',[i('Pasta di semola',110),i('Frutti di mare',50)],'Cozze, vongole, calamari, anche surgelati'),i('Indivia',100)],[i('Ananas',140),i('Fesa di tacchino arrosto',50)],
+   [i('Tonno fresco',410),i('Patate',200)],[pan('i',90),olio(2)],[152,290,68,2380]),
+ day(COL_A,[i('Mele',100)],[i("Tonno sott'olio",150,'g',"Scola bene l'olio"),i('Cipolle',200)],[i('Pere',150)],
+   [i('Hamburger di pollo',270,'g','Solo carne di pollo macinata, senza altri ingredienti'),i('Lattuga',100)],[pan('a',80),olio(4.5)],[119,163,76,1813]),
+ day(COL_A,[i('Banane',50)],[D('Pasta integrale al parmigiano',[i('Pasta integrale',110),i('Parmigiano grattugiato',15)]),i('Rapa',200)],[i('Pere',150)],
+   [D('Minestrone',[i('Misto di verdure cotte',200)],'Verdure del piano, niente patate o legumi'),i('Scamorza delattosata',120,'g','Fresca, non affumicata'),i('Insalata mista',100)],[pan('a',90),olio(2)],[81,243,66,1889]),
+]];
+const TARGET=[87,303,60,2100];
+
+return{PLAN,TARGET}})()}]},
+ silvia:{name:'Silvia',def:'2026-09-28',phases:[
+  {from:'2026-09-28',kcal:'1.650',label:'dieta di settembre',...(()=>{
+const COL_A=[i('Yogurt alla frutta parz. scremato',1,'vasetto'),i('Granola',50,'g','Cereali da colazione con avena e frutta secca'),i('Succo di frutta',150,'g','Senza zucchero aggiunto')];
+const COL_B=[i('Succo di frutta',150,'g','Senza zucchero aggiunto'),i('Pane bianco',50),i('Marmellata con fruttosio',3,'cucchiaino')];
+const COL_C=[i('Yogurt alla frutta parz. scremato',1,'vasetto'),i('Biscotti secchi senza latte e uova',50),i('Succo di frutta',150,'g','Senza zucchero aggiunto')];
+const CHOC=[i('Cioccolato fondente',20)];
+const PARM=[i('Biscotti secchi',30,'g','Senza cioccolato, cacao, marmellata o burro')];
+const day=(col,mm,pr,me,ce,arco,tot)=>({meals:[['Colazione',col],['Metà mattina',mm],['Pranzo',pr],['Merenda',me],['Cena',ce],['Spuntino serale',CHOC],['Arco della giornata',arco],['Pasto aggiuntivo',PARM]],tot});
+const pan=(t,g)=>i(t==='a'?'Pane arabo':'Pane integrale',g);
+const olio=q=>i('Olio extra vergine di oliva',q,'cucchiaino');
+const VC='Verdure del piano, niente patate o legumi';
+
+const PLAN=[[ // settimana 1
+ day(COL_A,[i('Mandorle',20)],[i('Petto di pollo',150),i('Indivia',100)],[i('Kiwi',90)],
+   [D('Passato di lenticchie',[i('Lenticchie secche',80)],'Ammollo qualche ora, cottura e poi frullate'),D('Uova strapazzate',[i('Uova',2,'n')]),i('Carote',150)],[pan('a',70),olio(2)],[96,206,58,1725]),
+ day(COL_B,[i('Kiwi',90)],[D('Pasta al pomodoro',[i('Pasta di semola',90),i('Salsa di pomodoro',60)]),i('Peperoni',150)],[i('Ananas',140)],
+   [i('Orata',200,'g','Pesata pulita: se intera aggiungi il 15% per la lisca'),i('Cetrioli',150)],[pan('i',70),olio(5.5)],[68,242,48,1674]),
+ day(COL_C,[i('Prugne',100),i('Parmigiano',30)],[D('Minestrone con pasta',[i('Pastina',90),i('Misto di verdure cotte',200)],VC),i('Indivia',100)],[i('Melone estivo',100)],
+   [i('Manzo magro',200),i('Finocchi',200)],[pan('i',60),olio(3)],[87,242,47,1742]),
+ day(COL_A,[i('Melone invernale',150)],[D('Riso con le zucchine',[i('Riso',90),i('Zucchine',90)],'Zucchine a fettine in padella con poca acqua, circa 15 minuti'),i('Feta',50),i('Fagiolini',200)],[i('Yogurt alla frutta parz. scremato',1,'vasetto')],
+   [D('Passato di zucchine',[i('Zucchine',200)]),D("Insalatona con tonno sott'olio e patate",[i("Tonno sott'olio",90),i('Misto di verdure crude',200),i('Patate',100)],'Almeno 3 ortaggi diversi; patate lesse a dadini')],[pan('i',70),olio(2)],[72,267,57,1868]),
+ day(COL_A,[i('Noci secche',20)],[D('Pasta in bianco',[i('Pasta di semola',100)]),i('Finocchi',200)],[i('Kiwi',90)],
+   [i('Salmone fresco',200,'g','Fresco o surgelato, non affumicato né in scatola'),i('Patate',200)],[pan('i',60),olio(2)],[76,257,74,1996]),
+ day(COL_B,[i('Uva',70)],[i("Tonno sott'olio",90,'g',"Scola bene l'olio"),i('Peperoni',150)],[i('Pere',100)],
+   [i('Petto di pollo',200),i('Indivia',100)],[pan('a',70),olio(6.5)],[86,170,48,1454]),
+ day(COL_A,[i('Mele',100)],[D('Pasta integrale con le zucchine',[i('Pasta integrale',90),i('Zucchine',90)],'Zucchine a fettine in padella con poca acqua, circa 15 minuti'),i('Fagiolini',200)],[i('Fichi',100)],
+   [D('Passato di verdure',[i('Misto di verdure cotte',200)],VC),i('Stracchino delattosato',90),i('Insalata mista',100,'g','Scegli tra insalate e ortaggi del piano, niente legumi')],[pan('a',70),olio(2)],[55,245,56,1703]),
+],[ // settimana 2
+ day(COL_A,[i('Mandorle',20)],[i('Coscia di pollo',110,'g',"Senza pelle; se la pesi con l'osso aggiungi il 30%"),i('Indivia',100)],[i('Kiwi',90)],
+   [D('Passato di fagioli',[i('Fagioli secchi',80)],'Ammollo 12 ore, meglio in pentola a pressione'),D('Uova alla coque',[i('Uova',2,'n')]),i('Cetrioli',150)],[pan('a',70),olio(2)],[80,194,65,1684]),
+ day(COL_B,[i('Kiwi',90)],[D('Pasta al parmigiano',[i('Pasta di semola',80),i('Parmigiano grattugiato',10)]),i('Carote',150)],[i('Ananas',140)],
+   [i('Sogliola',200,'g','Pesata pulita: se intera aggiungi il 15% per la lisca'),i('Peperoni',150)],[pan('i',70),olio(5.5)],[64,240,40,1581]),
+ day(COL_C,[i('Prugne',100),i('Parmigiano',30)],[D('Passato di verdure con pasta',[i('Pastina',90),i('Misto di verdure cotte',200)],VC),i('Indivia',100)],[i('Melone estivo',100)],
+   [i('Vitello magro',220),i('Cetrioli',150)],[pan('i',60),olio(3)],[88,243,47,1745]),
+ day(COL_A,[i('Melone invernale',150)],[D('Riso ai funghi',[i('Riso',90),i('Funghi',40)]),i('Feta',50),i('Fagiolini',200)],[i('Yogurt alla frutta parz. scremato',1,'vasetto')],
+   [D('Passato di verdure',[i('Misto di verdure cotte',200)],VC),D('Insalatona con tonno al naturale',[i('Tonno al naturale',130),i('Misto di verdure crude',300)],'Almeno 3 ortaggi diversi')],[pan('i',70),olio(2)],[82,257,49,1790]),
+ day(COL_A,[i('Noci secche',20)],[D('Pasta ai frutti di mare',[i('Pasta di semola',90),i('Frutti di mare',40)],'Cozze, vongole, calamari, anche surgelati'),i('Finocchi',200)],[i('Kiwi',90)],
+   [i('Tonno fresco',230),i('Patate',200)],[pan('i',60),olio(2)],[92,248,69,1982]),
+ day(COL_B,[i('Uva',70)],[i("Tonno sott'olio",90,'g',"Scola bene l'olio"),i('Cetrioli',150)],[i('Pere',100)],
+   [i('Hamburger di pollo',150,'g','Solo carne di pollo macinata, senza altri ingredienti'),i('Peperoni',150)],[pan('a',70),olio(6.5)],[66,170,56,1453]),
+ day(COL_A,[i('Mele',100)],[D('Pasta integrale al parmigiano',[i('Pasta integrale',80),i('Parmigiano grattugiato',10)]),i('Fagiolini',200)],[i('Fichi',100)],
+   [D('Minestrone',[i('Misto di verdure cotte',200)],VC),i('Scamorza delattosata',90,'g','Fresca, non affumicata'),i('Insalata mista',100,'g','Scegli tra insalate e ortaggi del piano, niente legumi')],[pan('a',70),olio(2)],[61,235,58,1707]),
+]];
+const TARGET=[65,241,47,1650];
+
+return{PLAN,TARGET}})()},
+  {from:'2026-10-26',kcal:'1.655',label:'nuova dieta',...(()=>{
+const COL_A=[i('Yogurt alla frutta parz. scremato',1,'vasetto'),i('Granola',50,'g','Cereali da colazione con avena e frutta secca'),i('Succo di frutta',150,'g','Senza zucchero aggiunto')];
+const COL_B=[i('Succo di frutta',150,'g','Senza zucchero aggiunto'),i('Pane bianco',50),i('Marmellata con fruttosio',3,'cucchiaino')];
+const COL_C=[i('Yogurt alla frutta parz. scremato',1,'vasetto'),i('Biscotti secchi senza latte e uova',50),i('Succo di frutta',150,'g','Senza zucchero aggiunto')];
+const CHOC=[i('Cioccolato fondente',20)];
+const PARM=[i('Biscotti secchi',30,'g','Senza cioccolato, cacao, marmellata o burro')];
+const day=(col,mm,pr,me,ce,arco,tot)=>({meals:[['Colazione',col],['Metà mattina',mm],['Pranzo',pr],['Merenda',me],['Cena',ce],['Spuntino serale',CHOC],['Arco della giornata',arco],['Pasto aggiuntivo',PARM]],tot});
+const pan=(t,g)=>i(t==='a'?'Pane arabo':'Pane integrale',g);
+const olio=q=>i('Olio extra vergine di oliva',q,'cucchiaino');
+const VC='Verdure del piano, niente patate o legumi';
+const YOG=i('Yogurt alla frutta parz. scremato',1,'vasetto');
+const BARR=i('Barrette ai cereali',25,'g','Senza frutta, cioccolato o altre aggiunte');
+const PURE=D('Purè di patate',[i('Patate',100),i('Latte parzialmente scremato',100),i('Burro',10),i('Parmigiano grattugiato',5),i('Noce moscata',0,'qb')],'Patate lesse schiacciate, poi a fuoco lento con burro, latte e parmigiano');
+const VELL=n=>i(n,200,'g','Fatta in casa o pronta, senza panna');
+
+const PLAN=[[ // settimana 1
+ day(COL_A,[i('Ananas',140)],[D('Pasta integrale, pomodoro e gamberi',[i('Pasta integrale',80),i('Salsa di pomodoro',60),i('Gamberi',40)],'Gamberi freschi o surgelati cotti nel sugo'),i('Cavolini di Bruxelles',200)],[i('Melone invernale',150)],
+   [VELL('Vellutata di zucca'),i("Tonno sott'olio",90,'g',"Scola bene l'olio"),i('Carote',150)],[pan('a',70),olio(2)],[73,250,50,1746]),
+ day(COL_B,[i('Cachi',100),BARR],[D('Farro con i funghi',[i('Farro',90),i('Funghi',40)],'Farro cotto circa 50 minuti; funghi a fettine in padella'),i('Finocchi',200)],[YOG],
+   [i('Petto di pollo',200),i('Cicoria',100)],[pan('i',70),olio(6.5)],[84,252,47,1765]),
+ day(COL_C,[i('Banane',50)],[D('Piadina, frittata e zucchine',[i('Piadina',90),i('Uova',1,'n'),i('Zucchine',50)],'Piadina senza latte o lievito; zucchine in padella con parte del condimento')],[i('Banane',50)],
+   [i('Orata',200,'g','Pesata pulita: se intera aggiungi il 15% per la lisca'),PURE],[pan('i',60),olio(2)],[79,228,67,1830]),
+ day(COL_A,[i('Pere',100),i('Parmigiano',30)],[D('Couscous con verdure',[i('Couscous',90),i('Misto di verdure cotte',160)],VC),i('Rapa',200)],[i('Pere',100)],
+   [D('Passato di verdure',[i('Misto di verdure cotte',200)],VC),D('Uova strapazzate',[i('Uova',2,'n')]),i('Finocchi',100),i('Avocado',80)],[pan('a',70),olio(2)],[70,252,66,1877]),
+ day(COL_A,[i('Noci secche',20)],[D('Pasta al pesto',[i('Pasta di semola',80),i('Pesto alla genovese',15)]),i('Cipolle',200)],[i('Ananas',140)],
+   [i('Merluzzo o Nasello',250,'g','Tranci o filetti, anche surgelati'),i('Bieta',200)],[pan('i',60),olio(2)],[79,227,53,1702]),
+ day(COL_B,[i('Cachi',100),i('Mandorle',20)],[D('Toast, sottilette e prosciutto cotto',[i('Pancarrè',90),i('Sottilette',50),i('Prosciutto cotto',20)])],[YOG],
+   [D('Passato di zucchine',[i('Zucchine',200)]),i('Manzo magro',200),i('Finocchi',200)],[pan('a',70),olio(2)],[91,233,58,1815]),
+ day(COL_A,[i('Cachi',100)],[D('Gnocchi al pesto',[i('Gnocchi di patate',150),i('Basilico',0,'qb'),i('Parmigiano',10),i('Pinoli',10),i('Pecorino grattugiato',5)],'Pesto fatto in casa con basilico, parmigiano, pinoli e pecorino'),i('Fagioli freschi',160)],[i('Pere',100)],
+   [D('Passato di verdure',[i('Misto di verdure cotte',200)],VC),i('Salmone affumicato',100),i('Carote',100)],[pan('i',60),olio(2)],[78,257,51,1800]),
+],[ // settimana 2
+ day(COL_A,[i('Ananas',140)],[D('Pasta integrale al pomodoro',[i('Pasta integrale',90),i('Salsa di pomodoro',60)]),i('Verza',200)],[i('Melone invernale',150)],
+   [VELL('Vellutata di asparagi'),i("Tonno sott'olio",90,'g',"Scola bene l'olio"),i('Carote',150)],[pan('a',70),olio(2)],[68,258,52,1772]),
+ day(COL_B,[i('Cachi',100),BARR],[D('Farro con verdure',[i('Farro',90),i('Misto di verdure cotte',90)],VC),i('Indivia',100)],[YOG],
+   [i('Coscia di pollo',150,'g',"Senza pelle; se la pesi con l'osso aggiungi il 30%"),i('Funghi',100)],[pan('i',70),olio(6)],[66,256,54,1770]),
+ day(COL_C,[i('Banane',50)],[D('Piadina, bresaola, parmigiano e rucola',[i('Piadina',90),i('Bresaola',30),i('Parmigiano',20),i('Rucola',30)],'Parmigiano a scaglie; piadina scaldata sulla piastra')],[i('Banane',50)],
+   [i('Platessa',200,'g','Filetti, anche surgelati'),PURE],[pan('i',60),olio(2)],[82,227,57,1750]),
+ day(COL_A,[i('Pere',100),i('Parmigiano',30)],[D('Couscous in insalata',[i('Couscous',90),i('Misto di verdure crude',160)]),i('Rapa',200)],[i('Pere',100)],
+   [D('Minestrone',[i('Misto di verdure cotte',200)],VC),D('Uova alla coque',[i('Uova',2,'n')]),i('Bieta',100),i('Avocado',80)],[pan('a',70),olio(2)],[69,252,66,1873]),
+ day(COL_A,[i('Noci secche',20)],[D('Pasta con gli spinaci',[i('Pasta di semola',90),i('Spinaci',50)]),i('Cipolle',200)],[i('Ananas',140)],
+   [i('Platessa',200,'g','Filetti, anche surgelati'),i('Finocchi',200)],[pan('i',60),olio(2)],[71,233,50,1669]),
+ day(COL_B,[i('Cachi',100),i('Mandorle',20)],[D('Toast, scamorza e prosciutto cotto',[i('Pancarrè',80),i('Scamorza',40),i('Prosciutto cotto',20)])],[YOG],
+   [D('Passato di verdure',[i('Misto di verdure cotte',200)],VC),i('Vitello magro',220),i('Rapa',200)],[pan('a',70),olio(2)],[95,237,56,1828]),
+ day(COL_A,[i('Cachi',100)],[D('Tortellini al parmigiano',[i('Tortellini freschi',150),i('Parmigiano',25)]),i('Fagioli freschi',160)],[i('Pere',100)],
+   [D('Minestrone',[i('Misto di verdure cotte',200)],VC),D('Tartare di salmone',[i('Salmone fresco',80)],'Salmone fresco abbattuto o già congelato, da mangiare crudo'),i('Carote',100)],[pan('i',60),olio(2)],[81,283,63,2024]),
+]];
+const TARGET=[80,229,46,1655];
+
+return{PLAN,TARGET}})()}]}
+};
+const allWeeks=p=>PEOPLE[p].phases.flatMap(ph=>ph.PLAN);
+const WHO=['andrea','silvia'];
+const mealCls=mn=>({'Colazione':'m-col','Metà mattina':'m-snack','Merenda':'m-snack','Spuntino serale':'m-snack','Pranzo':'m-pranzo','Cena':'m-cena'})[mn]||'m-other';
+const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+const CATS={Primi:['Lenticchie secche','Fagioli secchi','Pasta di semola','Pasta integrale','Pastina','Riso','Couscous','Farro','Gnocchi di patate','Tortellini freschi','Vellutata di zucca','Vellutata di asparagi'],
+ 'Carne, pesce, uova e formaggi':['Petto di pollo','Coscia di pollo','Hamburger di pollo','Fesa di tacchino arrosto','Manzo magro','Vitello magro','Orata','Sogliola','Salmone fresco','Tonno fresco',"Tonno sott'olio",'Tonno al naturale','Frutti di mare','Uova','Feta','Parmigiano','Parmigiano grattugiato','Stracchino delattosato','Scamorza delattosata','Gamberi','Merluzzo o Nasello','Prosciutto cotto','Salmone affumicato','Sottilette','Bresaola','Platessa','Scamorza','Pecorino grattugiato'],
+ 'Verdure':['Bieta','Carote','Cetrioli','Cipolle','Fagiolini','Finocchi','Funghi','Indivia','Insalata mista','Lattuga','Misto di verdure cotte','Misto di verdure crude','Patate','Peperoni','Piselli freschi','Rapa','Zucchine','Cavolini di Bruxelles','Cicoria','Verza','Rucola','Spinaci','Fagioli freschi'],
+ 'Frutta e frutta secca':['Ananas','Banane','Cachi','Fichi','Kiwi','Mandorle','Mele','Melone estivo','Melone invernale','Noci secche','Pere','Prugne','Uva','Avocado','Pinoli']};
+// reparto anche per prodotti che non sono nella dieta (es. sostituzioni): parole chiave a inizio parola
+const CAT_KW=[
+ ['Verdure',['zucchin','carot','melanzan','peperon','pomodor','insalat','lattug','spinac','biet','cavol','verz','broccol','finocch','cetriol','fagiolin','asparag','carciof','fung','champignon','cipoll','porr','sedan','rucol','radicch','zucca','patat','verdur','indivia','rapa','cime','scarol','valerian','ravanell','barbabietol','cavolfior','germogl','minestron','aglio']],
+ ['Carne, pesce, uova e formaggi',['poll','tacchin','manz','vitell','maial','lonza','bresaol','prosciutt','salmon','tonn','merluzz','branzin','orata','spigol','sogliol','nasell','gamber','calamar','cozz','vongol','polp','sepp','pesce','uov','album','mozzarell','ricott','formagg','parmigian','grana','feta','stracchin','scamorz','fiocchi di latte','tofu','hamburger','carne','platess','trot','sgombr','alic','acciugh','baccal','coniglio','agnell','fesa','petto','coscia','philadelphia','primo sale','caprin','skyr','seitan','tempeh']],
+ ['Primi',['pasta','riso','farro','orzo','quinoa','couscous','cous','gnocch','lenticch','ceci','fagiol','legum','pastina','spaghett','penne','fusill','rigaton','tagliatell','grano saraceno','avena','polenta','miglio','piselli secchi']],
+ ['Frutta e frutta secca',['mela','mele','pera','pere','banan','aranc','mandarin','clementin','kiwi','ananas','uva','fragol','frutti di bosco','mirtill','lampon','more','pesca','pesche','albicocc','prugn','susin','cach','fich','melone','anguri','cocomer','mango','papaya','limon','pompelm','melagran','noci','nocciol','mandorl','pistacch','anacard','datter','frutta']],
+];
+CAT_KW.unshift(['Dispensa e altro',['biscott','pane','pan ','fette biscottate','crackers','cracker','grissin','gallett','muesli','granola','cereal','yogurt','latte','succo','spremut','marmellat','confettur','miele','olio','aceto','cioccolat','cacao','caffe','te ','tisan','salsa','passata','sugo','sale','spezi','zucchero','dolcific','farina','lievito','acqua','bevanda','burro','maionese','ketchup','senape','dado','brodo','piadin','tortill','wrap','barrett','crema']]);
+let DIET_NAMES=null;
+// alimenti della dieta: reparto fisso (quelli non elencati sopra vanno in dispensa); per gli altri conta la prima parola chiave che compare nel nome
+const catOf=n=>{const c=Object.keys(CATS).find(c=>CATS[c].includes(n));if(c)return c;
+  if(!DIET_NAMES){DIET_NAMES=new Set();WHO.forEach(p=>allWeeks(p).forEach(wk=>wk.forEach(d=>d.meals.forEach(([,items])=>items.forEach(it=>(it.ings||[it]).forEach(g=>DIET_NAMES.add(g.n)))))))}
+  if(DIET_NAMES.has(n))return 'Dispensa e altro';
+  const w=' '+norm(n).replace(/[^a-z' ]/g,' ')+' ';let best=null,bi=1e9;
+  for(const [cat,kws] of CAT_KW)for(const k of kws){const i=w.indexOf(' '+k);if(i>=0&&i<bi){bi=i;best=cat}}
+  return best||'Dispensa e altro'};
+const CAT_ORDER=['Sostituzioni',...Object.keys(CATS),'Dispensa e altro'];
+
+const frac=q=>{const w=Math.floor(q),h=q-w>0;return (w?w:'')+(h?(w?' e ½':'½'):'')};
+function fq(x,q=x.q){
+  const u=x.u;
+  if(u==='g')return q.toLocaleString('it-IT')+' g';
+  if(u==='n')return q+(q===1?' uovo':' uova');
+  if(u==='vasetto')return q+(q===1?' vasetto':' vasetti');
+  if(u==='tazzina')return q+(q===1?' tazzina':' tazzine');
+  if(u==='cucchiaino')return frac(q)+(q<=1?' cucchiaino':' cucchiaini');
+  if(u==='qb')return 'q.b.';
+  return q+' '+u;
+}
+const GRAMS={'Olio extra vergine di oliva':4,'Marmellata con fruttosio':10,'Yogurt alla frutta parz. scremato':125};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// storage
+// ===== COLLEGAMENTO AI DATI: incolla qui il link della web app Apps Script (finisce con /exec) =====
+const API='INCOLLA_QUI_IL_LINK_EXEC';
+// storage: spunte, sostituzioni e spesa stanno in un file sul Drive (Apps Script) e sono condivise;
+// persona, vista e giorni della spesa restano su ogni telefono. Il telefono tiene una copia per aprirsi subito
+// e per funzionare anche senza rete: le modifiche partono appena torna la connessione.
+const SHARED=new Set(['casa.checks','casa.subs','casa.gsubs','casa.shopChk','casa.extras']);
+function apiCall(h,req){fetch(req.url,req.opt).then(r=>{if(!r.ok)throw new Error(r.status);return r.text()}).then(t=>h.s&&h.s(t)).catch(e=>h.f&&h.f(e))}
+const SERVER=/^https:\/\/script\.google\.com\/.+\/exec$/.test(API)?{
+  withSuccessHandler(f){const h={s:f},r={withFailureHandler(g){h.f=g;return r},
+    getAll(v){apiCall(h,{url:API+'?action=get&v='+encodeURIComponent(v)+'&t='+Date.now(),opt:{cache:'no-store'}})},
+    save(x){apiCall(h,{url:API,opt:{method:'POST',body:JSON.stringify({action:'save',ops:JSON.parse(x)})}})}};return r}}:null;
+const clone=v=>v===undefined?undefined:JSON.parse(JSON.stringify(v));
+const isObj=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
+const LOCAL={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let synced=LOCAL.get('casa.cache',{}),pending=LOCAL.get('casa.pending',[]),inFlight=false,saveFailed=false;
+if(!isObj(synced))synced={};if(!Array.isArray(pending))pending=[];
+function keepCopy(){LOCAL.set('casa.cache',synced);LOCAL.set('casa.pending',pending)}
+// confronta il vecchio e il nuovo valore e manda solo le voci cambiate, così due telefoni non si sovrascrivono
+function diffOps(a,b,path,depth,ops){
+  if(isObj(a)&&isObj(b)&&depth<3)new Set([...Object.keys(a),...Object.keys(b)]).forEach(k=>diffOps(a[k],b[k],[...path,k],depth+1,ops));
+  else if(JSON.stringify(a)!==JSON.stringify(b))ops.push(b===undefined?{p:path,del:1}:{p:path,v:clone(b)});
+  return ops}
+function flushSave(){
+  if(!SERVER||inFlight||!pending.length)return;
+  const batch=pending;pending=[];inFlight=true;
+  SERVER.withSuccessHandler(js=>{inFlight=false;keepCopy();if(saveFailed){saveFailed=false;flash('Salvato')}if(pending.length)flushSave();else adopt(js)})
+    .withFailureHandler(()=>{inFlight=false;pending=batch.concat(pending);keepCopy();if(!saveFailed){saveFailed=true;flash('Senza rete: salvo appena torna')}setTimeout(flushSave,5000)})
+    .save(JSON.stringify(batch))}
+const S={
+  get(k,d){if(SERVER&&SHARED.has(k))return k in synced?clone(synced[k]):d;return LOCAL.get(k,d)},
+  set(k,v){if(SERVER&&SHARED.has(k)){pending.push(...diffOps(synced[k],v,[k],1,[]));synced[k]=clone(v);keepCopy();setTimeout(flushSave,0);return}
+    LOCAL.set(k,v)}};
+let who=S.get('casa.who','andrea'); if(!PEOPLE[who])who='andrea';
+const starts={andrea:PEOPLE.andrea.def,silvia:PEOPLE.silvia.def};
+let checks=S.get('casa.checks',null)||{andrea:S.get('dieta.checks',{}),silvia:{}};
+let shopWho=S.get('casa.shopWho','both');
+let shopDates=S.get('casa.shopDates',null);
+let shopChk=S.get('casa.shopChk',{});
+let extras=S.get('casa.extras',[]);
+let subs=S.get('casa.subs',{});
+let gsubs=S.get('casa.gsubs',{});
+const gsubFor=(p,n)=>(gsubs[p]||{})[n]||null;
+let editing=null,draft=null,focusIdx=null;
+const subItems=s=>s.items||[{n:s.n,q:s.q}];
+// risolve una sostituzione (anche con più prodotti) in nomi e quantità
+function resolveSub(s,g){
+  const rs=subItems(s).filter(it=>it.n&&it.n.trim()).map(it=>{const c=canonFood(it.n),name=c?c.n:it.n.trim().replace(/^./,x=>x.toUpperCase()),u=c?c.u:g.u;
+    const v=it.q?parseQ(it.q,u):null;return {name,u,v,txt:it.q&&v==null?it.q:null,blank:!it.q}});
+  const used=rs.reduce((a,r)=>a+(r.v!=null&&r.u===g.u?r.v:0),0),blanks=rs.filter(r=>r.blank);
+  const share=blanks.length?Math.round(Math.max(g.q-used,0)/blanks.length*2)/2:0;
+  blanks.forEach(r=>{if(r.u===g.u)r.v=share;else r.txt=fq(g,share)});
+  rs.forEach(r=>r.disp=r.v!=null?fq({u:r.u},r.v):r.txt);
+  return rs}
+function keepScroll(fn){const y=window.scrollY;fn();window.scrollTo(0,y)}
+
+const pd=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const today0=()=>{const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate())};
+const dayDiff=(a,b)=>Math.round((a-b)/864e5);
+function cycle(p){
+  const s=pd(starts[p]),diff=dayDiff(today0(),s);
+  if(diff<0)return{base:s,idx:null};
+  return{base:addD(s,Math.floor(diff/14)*14),idx:diff%14};
+}
+const dateOf=(p,idx)=>addD(cycle(p).base,idx);
+const idxForDate=(p,d)=>planAt(p,d).idx;
+const phaseAt=(p,d)=>{const ph=PEOPLE[p].phases;let r=ph[0];ph.forEach(x=>{if(pd(x.from)<=d)r=x});return r};
+function planAt(p,d){const ph=phaseAt(p,d),diff=dayDiff(d,pd(ph.from)),idx=((diff%14)+14)%14;
+  return {ph,idx,day:ph.PLAN[Math.floor(idx/7)][idx%7],week:Math.max(0,Math.floor(diff/7))}}
+const short=d=>d.getDate()+'/'+(d.getMonth()+1);
+const $=id=>document.getElementById(id);
+
+const WEEKS=16;
+const todayAbs=p=>dayDiff(today0(),pd(starts[p]));
+const maxWeek=p=>{const ph=PEOPLE[p].phases,last=ph[ph.length-1];return Math.max(dayDiff(pd(last.from),pd(starts[p]))/7+WEEKS,Math.floor(todayAbs(p)/7)+1)};
+const clampAbs=(p,a)=>Math.min(Math.max(a,0),maxWeek(p)*7-1);
+const absDate=(p,a)=>addD(pd(starts[p]),a);
+let cur=clampAbs(who,todayAbs(who));
+
+function renderDay(){
+  const P=PEOPLE[who],wk=Math.floor(cur/7),tA=todayAbs(who),pa=planAt(who,absDate(who,cur)),w=Math.floor(pa.idx/7),d=pa.idx%7;
+  document.body.classList.toggle('silvia',who==='silvia');
+  WHO.forEach(p=>$('who-'+p).setAttribute('aria-pressed',p===who));
+  $('startWho').textContent=P.name;$('startDate').textContent=pd(pa.ph.from).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  $('wkNum').textContent=`Settimana ${pa.week+1} di ${WEEKS}`;
+  $('wkPlan').textContent=`piano: settimana ${w+1}${P.phases.length>1?' · '+pa.ph.label:''}`;
+  WHO.forEach(p=>{$('who-'+p).querySelector('span').textContent=phaseAt(p,absDate(who,cur)).kcal+' kcal'});
+  $('wPrev').disabled=wk===0;$('wNext').disabled=wk>=maxWeek(who)-1;
+  $('days').innerHTML=DAYS.map((n,k)=>{const idx=wk*7+k,dt=absDate(who,idx);
+    return `<button data-i="${idx}" aria-pressed="${idx===cur}" class="${idx===tA?'today':''}"><b>${n.slice(0,3)}</b><span>${short(dt)}</span></button>`}).join('');
+  const bn=$('banner');
+  const nextPh=P.phases.find(x=>pd(x.from)>absDate(who,cur));
+  const fmtD=s=>pd(s).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  if(tA<0){bn.hidden=false;bn.textContent=`Il piano di ${P.name} parte ${fmtD(starts[who])}. Intanto puoi consultarlo e fare la spesa.`}
+  else if(nextPh&&dayDiff(pd(nextPh.from),absDate(who,cur))<=14){bn.hidden=false;bn.textContent=`Da ${fmtD(nextPh.from)} ${P.name} passa alla ${nextPh.label} (${nextPh.kcal} kcal). La spesa tiene già conto del cambio.`}
+  else if(P.phases.length>1&&pa.ph!==P.phases[0]&&pa.week<2){bn.hidden=false;bn.textContent=`${pa.ph.label[0].toUpperCase()+pa.ph.label.slice(1)} dal ${short(pd(pa.ph.from))}: ${pa.ph.kcal} kcal, ciclo di 2 settimane per 16 settimane.`}
+  else bn.hidden=true;
+  const dt=absDate(who,cur),key=iso(dt),plan=pa.day,ck=(checks[who]||{})[key]||{};
+  $('dayTitle').textContent=`${DAYS[d]} ${dt.toLocaleDateString('it-IT',{day:'numeric',month:'long'})}`;
+  let tot=0,done=0;
+  const sd=((subs[who]||{})[key])||{};
+  const eff=(id,n)=>sd[id]||gsubFor(who,n);
+  const subTxt=(id,g)=>{const s=eff(id,g.n);return s?`<span class="subnote">${sd[id]?'al posto':'sempre al posto'}: ${resolveSub(s,g).map(r=>`${esc(r.name)} ${esc(r.disp)}`).join(' + ')}</span>`:''};
+  const sbtn=(id,n)=>`<button class="sb${eff(id,n)?' has':''}" type="button" data-sub="${id}" data-food="${esc(n)}" title="Sostituisci ${n}" aria-label="Sostituisci ${n}">⇄</button>`;
+  const editor=(id,g)=>{if(editing!==id||!draft)return '';const multi=draft.length>1;
+    const rows=draft.map((r,i)=>`<input type="text" id="subN${i}" data-i="${i}" data-f="n" placeholder="${i?'Altro prodotto…':'Al posto di '+esc(g.n)+' mangio…'}" value="${esc(r.n)}" aria-label="Alimento sostitutivo ${i+1}"><input type="text" id="subQ${i}" data-i="${i}" data-f="q" placeholder="${multi?'auto':fq(g)}" value="${esc(r.q)}" aria-label="Quantità ${i+1}"><button class="del${multi?'':' ghostdel'}" type="button" data-rmrow="${i}" aria-label="Togli questo prodotto">×</button>`).join('');
+    return `<form class="subform" data-form="${id}" autocomplete="off">${rows}<div class="acts"><button class="minor" type="button" data-addrow="1">+ Aggiungi un altro prodotto</button></div>${multi?`<div class="shint">Se lasci vuote le quantità, ${fq(g)} vengono divisi in parti uguali.</div>`:''}${!sd[id]&&gsubFor(who,g.n)?`<div class="shint">È sostituito in tutti i giorni dalla ricerca: quello che salvi qui vale solo per questo giorno.</div>`:''}<div class="acts"><button class="btn" type="submit">Salva</button>${sd[id]?'<button class="btn ghost" type="button" data-unsub="1">Togli sostituzione</button>':''}<button class="minor" type="button" data-cancel="1">Annulla</button></div></form>`};
+  $('meals').innerHTML=plan.meals.map(([mn,items],mi)=>{
+    const rows=items.map((it,ii)=>{const id=mi+'.'+ii,on=!!ck[id];tot++;if(on)done++;
+      const cid='ck'+id.replace(/\./g,'_');
+      const tip=it.tip?`<span class="tip">${it.tip}</span>`:'';
+      if(it.ings){
+        const ings=it.ings.map((g,gi)=>{const gid=id+'.'+gi;
+          return `<div class="ingl${eff(gid,g.n)?' subbed':''}"><span class="in"><span class="orig">${g.n}</span>${subTxt(gid,g)}</span><i>${fq(g)}</i>${sbtn(gid,g.n)}</div>${editor(gid,g)}`}).join('');
+        return `<div class="row${on?' on':''}"><div class="item"><input type="checkbox" id="${cid}" data-k="${id}" ${on?'checked':''}><label for="${cid}" class="nm">${it.n}${tip}</label><span></span><span></span></div>${ings}</div>`}
+      return `<div class="row${on?' on':''}"><div class="item${eff(id,it.n)?' subbed':''}"><input type="checkbox" id="${cid}" data-k="${id}" ${on?'checked':''}><label for="${cid}" class="nm"><span class="orig">${it.n}</span>${subTxt(id,it)}${tip}</label><span class="q">${fq(it)}</span>${sbtn(id,it.n)}</div>${editor(id,it)}</div>`}).join('');
+    const md=items.filter((_,ii)=>ck[mi+'.'+ii]).length;
+    return `<div class="meal ${mealCls(mn)}"><h3>${mn}<em>${md}/${items.length}</em></h3>${rows}</div>`}).join('');
+  if(editing&&focusIdx!=null){const f=$('subN'+focusIdx);if(f)f.focus({preventScroll:true});focusIdx=null}
+  $('prog').textContent=`${done}/${tot} fatti`;
+  $('progBar').style.width=(tot?done/tot*100:0)+'%';
+  const L=['Proteine','Carboidrati','Grassi','Kcal'];
+  $('macros').innerHTML=plan.tot.map((v,k)=>`<div><small>${L[k]}</small><b>${v.toLocaleString('it-IT')}${k<3?' g':''}</b><span>obiettivo medio ${pa.ph.TARGET[k].toLocaleString('it-IT')}</span></div>`).join('');
+}
+document.querySelectorAll('.who button').forEach(b=>b.onclick=()=>{const d=absDate(who,cur);who=b.dataset.p;S.set('casa.who',who);cur=clampAbs(who,dayDiff(d,pd(starts[who])));editing=null;draft=null;renderDay()});
+$('days').addEventListener('click',e=>{const b=e.target.closest('button');if(b){cur=+b.dataset.i;renderDay()}});
+$('wPrev').onclick=()=>{cur=Math.max(0,cur-7);renderDay()};
+$('wNext').onclick=()=>{cur=clampAbs(who,cur+7);renderDay()};
+$('goToday').onclick=()=>{cur=clampAbs(who,todayAbs(who));renderDay();window.scrollTo({top:0})};
+$('meals').addEventListener('change',e=>{const k=e.target.dataset.k;if(!k)return;const key=iso(absDate(who,cur));
+  checks[who]=checks[who]||{};const ck=checks[who][key]=checks[who][key]||{};
+  if(e.target.checked)ck[k]=1;else delete ck[k];S.set('casa.checks',checks);
+  const y=window.scrollY;renderDay();window.scrollTo(0,y)});
+function setSub(id,val){const key=iso(absDate(who,cur));subs[who]=subs[who]||{};const day=subs[who][key]=subs[who][key]||{};
+  if(val)day[id]=val;else delete day[id];if(!Object.keys(day).length)delete subs[who][key];S.set('casa.subs',subs)}
+$('meals').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.sub){if(editing===d.sub){editing=null;draft=null}else{editing=d.sub;const cur0=((subs[who]||{})[iso(absDate(who,cur))]||{})[d.sub]||gsubFor(who,d.food);
+    draft=cur0?subItems(cur0).map(r=>({n:r.n||'',q:r.q||''})):[{n:'',q:''}];focusIdx=0}}
+  else if(d.cancel){editing=null;draft=null}
+  else if(d.unsub){setSub(b.closest('form').dataset.form,null);editing=null;draft=null}
+  else if(d.addrow){draft.push({n:'',q:''});focusIdx=draft.length-1}
+  else if(d.rmrow!=null&&draft&&draft.length>1){draft.splice(+d.rmrow,1)}
+  else return;
+  e.preventDefault();keepScroll(renderDay)});
+$('meals').addEventListener('input',e=>{const d=e.target.dataset;if(!draft||!d.f)return;const r=draft[+d.i];if(r)r[d.f]=e.target.value});
+$('meals').addEventListener('submit',e=>{e.preventDefault();const id=e.target.dataset.form;
+  const items=(draft||[]).map(r=>({n:r.n.trim(),q:r.q.trim()})).filter(r=>r.n);
+  setSub(id,items.length?{items}:null);editing=null;draft=null;keepScroll(renderDay)});
+
+// spesa
+const gridStart=()=>{const t=today0();return addD(t,-((t.getDay()+6)%7))};
+const gridDates=()=>Array.from({length:14},(_,k)=>iso(addD(gridStart(),k)));
+const range=(from,n)=>Array.from({length:n},(_,k)=>iso(addD(from,k)));
+if(!Array.isArray(shopDates))shopDates=range(today0(),7);
+const people=()=>shopWho==='both'?WHO:[shopWho];
+let ALLFOODS=null;
+function canonFood(n){
+  if(!ALLFOODS){ALLFOODS=new Map();WHO.forEach(p=>allWeeks(p).forEach(wk=>wk.forEach(d=>d.meals.forEach(([,items])=>items.forEach(it=>(it.ings||[it]).forEach(g=>ALLFOODS.set(norm(g.n),{n:g.n,u:g.u})))))))}
+  const k=norm(n.trim());if(ALLFOODS.has(k))return ALLFOODS.get(k);
+  // singolare/plurale: "zucchina" = "Zucchine", "mela" = "Mele"
+  const stem=s=>s.replace(/[aeio]$/,'');const sk=stem(k);
+  for(const [kk,v] of ALLFOODS)if(!kk.includes(' ')&&!k.includes(' ')&&stem(kk)===sk&&sk.length>=3)return v;
+  return null}
+function parseQ(t,u){const m=String(t).trim().replace(',','.').match(/^(\d+(?:\.\d+)?)\s*(g|gr|grammi|uova|uovo|vasetti|vasetto|cucchiaini|cucchiaino)?\.?$/i);
+  if(!m)return null;const unit=(m[2]||'').toLowerCase(),v=parseFloat(m[1]);
+  if(!unit)return v;
+  if(u==='g'&&/^g/.test(unit))return v;if(u==='n'&&/^uov/.test(unit))return v;if(u==='vasetto'&&/^vas/.test(unit))return v;if(u==='cucchiaino'&&/^cucch/.test(unit))return v;
+  return null}
+let lastSubs=[];
+function partsTxt(ps){const sums=new Map(),tx=[];ps.forEach(x=>{if(x.v!=null)sums.set(x.u,(sums.get(x.u)||0)+x.v);else if(x.txt)tx.push(x.txt)});
+  return [...[...sums].map(([u,v])=>fq({u},v)),...tx].join(' + ')}
+function aggregate(){
+  const m=new Map(),subsList=new Map();
+  const add=(name,u,p,ds,q,txt)=>{const o=m.get(name)||{key:name,n:name,u,q:0,by:{andrea:0,silvia:0},days:{},dtext:{},extra:[]};
+    if(txt!=null){o.extra.push(txt);(o.dtext[ds]=o.dtext[ds]||[]).push(txt)}
+    else{o.q+=q;o.by[p]+=q;o.days[ds]=(o.days[ds]||0)+q}
+    m.set(name,o)};
+  selDates().forEach(ds=>{const dt=pd(ds);people().forEach(p=>{
+    const plan=planAt(p,dt).day,sd=((subs[p]||{})[ds])||{};
+    plan.meals.forEach(([,items],mi)=>items.forEach((it,ii)=>{const id=mi+'.'+ii;
+      (it.ings?it.ings.map((g,gi)=>[g,id+'.'+gi]):[[it,id]]).forEach(([g,gid])=>{
+        const s=sd[gid]||gsubFor(p,g.n);
+        if(!s){add(g.n,g.u,p,ds,g.q);return}
+        resolveSub(s,g).forEach(r=>{
+          const k=r.name+'|'+g.n;const e=subsList.get(k)||{n:r.name,orig:g.n,days:[],parts:[]};e.days.push(ds);e.parts.push({v:r.v,u:r.u,txt:r.txt});subsList.set(k,e);
+          if(r.v!=null)add(r.name,r.u,p,ds,r.v);else add(r.name,r.u,p,ds,0,r.txt)})})}))})});
+  lastSubs=[...subsList.values()].sort((a,b)=>a.n.localeCompare(b.n,'it'));
+  return [...m.values()];
+}
+function selDates(){const valid=new Set(gridDates());return shopDates.filter(s=>valid.has(s)).sort()}
+const dayLbl=ds=>{const d=pd(ds);return DAYS[(d.getDay()+6)%7].slice(0,3)+' '+d.getDate()};
+const dayTag=(ds,html)=>ds===iso(today0())?(html?'<b class="oggi">oggi</b>':'oggi'):(html?`<span class="dl">${dayLbl(ds)}</span>`:dayLbl(ds));
+function daysLine(o,html){
+  const E=html?esc:(x=>x);
+  const ks=[...new Set([...Object.keys(o.days),...Object.keys(o.dtext||{})])].sort(),nSel=selDates().length;
+  const plain=!Object.keys(o.dtext||{}).length;
+  if(plain&&ks.length===nSel&&nSel>2&&new Set(ks.map(k=>o.days[k])).size===1)return `tutti i giorni · ${fq(o,o.days[ks[0]])} al giorno`;
+  return ks.map(k=>`${dayTag(k,html)} ${E([o.days[k]?fq(o,o.days[k]):null,...((o.dtext||{})[k]||[])].filter(Boolean).join(' + '))}`).join(' · ');
+}
+const catOfItem=o=>catOf(o.n);
+function lineQty(o,q=o.q){
+  const parts=[];const ex=o.extra||[];
+  if(q>0||!ex.length){let s=fq(o,q);if(GRAMS[o.n])s+=` (${Math.round(q*GRAMS[o.n]).toLocaleString('it-IT')} g)`;parts.push(s)}
+  return parts.concat(ex).join(' + ')}
+function renderExtras(){
+  const todo=extras.filter(x=>!x.on);
+  $('extraList').innerHTML=todo.length?todo.map(x=>`<label class="item"><input type="checkbox" data-x="${x.id}"><div class="nm">${esc(x.n)}</div><span class="q">${esc(x.q||'')}</span><button class="del" type="button" data-del="${x.id}" aria-label="Elimina ${esc(x.n)}">×</button></label>`).join('')
+    :'<div class="hint">Aggiungi qui quello che serve in casa oltre alla dieta: detersivi, acqua, caffè, cose per gli ospiti.</div>';
+}
+// quando un prodotto è "preso" ricordiamo fino a che giorno della dieta copre
+const takenInfo=k=>{const v=shopChk[k];return v&&typeof v==='object'?v:null};
+const keyName=k=>k.replace(/ \(sostituzione\)$/,'');
+function renderTaken(items){
+  const diet=items.filter(o=>shopChk[o.key]).sort((a,b)=>a.n.localeCompare(b.n,'it'));
+  const dietNames=new Set(items.map(o=>o.key));
+  const other=Object.keys(shopChk).filter(n=>!dietNames.has(n)).sort((a,b)=>a.localeCompare(b,'it'));
+  const ex=extras.filter(x=>x.on);
+  const n=diet.length+other.length+ex.length;
+  $('takenBox').hidden=!n;$('takenCount').textContent=n;
+  $('takenList').innerHTML=
+    diet.map(o=>`<div class="trow"><span class="nm">${esc(o.n)}${o.sub?'<span class="tag">sostituzione</span>':''}</span><span class="q">${esc(lineQty(o))}</span><span></span><button class="back" data-back="${esc(o.key)}">Rimetti</button></div>`).join('')+
+    other.map(nm=>`<div class="trow"><span class="nm">${esc(keyName(nm))}<small>non serve per i giorni scelti</small></span><span class="q"></span><span></span><button class="back" data-back="${esc(nm)}">Rimetti</button></div>`).join('')+
+    ex.map(x=>`<div class="trow"><span class="nm">${esc(x.n)}<span class="tag">fuori dieta</span></span><span class="q">${esc(x.q||'')}</span><button class="del" data-del="${x.id}" aria-label="Elimina ${esc(x.n)}">×</button><button class="back" data-xback="${x.id}">Rimetti</button></div>`).join('');
+}
+function renderShop(){
+  document.querySelectorAll('#shopWho button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===shopWho));
+  const t=iso(today0());
+  $('shopDays').innerHTML=gridDates().map(ds=>{const dt=pd(ds);
+    return `<button class="chip${ds===t?' today':''}" data-d="${ds}" aria-pressed="${shopDates.includes(ds)}"><b>${DAYS[(dt.getDay()+6)%7].slice(0,3)}</b><span>${short(dt)}</span></button>`}).join('');
+  renderExtras();
+  const all=aggregate();lastAgg=new Map(all.map(o=>[o.key,o]));renderTaken(all);renderShopFind();
+  const items=all.filter(o=>!shopChk[o.key]);
+  if(!all.length){$('shopList').innerHTML='<div class="empty">Seleziona uno o più giorni qui sopra per vedere cosa comprare per la dieta.</div>';return}
+  const subNames=new Set(lastSubs.map(r=>r.n));
+  const subsPanel=lastSubs.length?`<div class="cat subs"><h3>Sostituzioni</h3><div class="hint">Le quantità sono già sommate nella lista qui sotto.</div>${
+    (()=>{const by=new Map();lastSubs.forEach(r=>{const g=by.get(r.orig)||{orig:r.orig,items:[],days:new Set()};g.items.push(r);r.days.forEach(d=>g.days.add(d));by.set(r.orig,g)});
+      return [...by.values()].sort((x,y)=>x.orig.localeCompare(y.orig,'it')).map(g=>`<div class="trow srow"><span class="nm">Al posto di <b>${esc(g.orig)}</b><small>${[...g.days].sort().map(d=>dayTag(d,true)).join(' · ')}</small></span><span class="q sq">${g.items.map(r=>`${esc(r.n)} ${esc(partsTxt(r.parts))}`).join('<br>')}</span></div>`).join('')})()}</div>`:'';
+  if(!items.length){$('shopList').innerHTML=subsPanel+'<div class="empty">Hai già tutto quello che serve per la dieta nei giorni scelti.</div>';return}
+  const both=shopWho==='both';
+  const groups={};items.forEach(o=>{(groups[catOfItem(o)]=groups[catOfItem(o)]||[]).push(o)});
+  $('shopList').innerHTML=subsPanel+CAT_ORDER.filter(c=>groups[c]).map(cn=>`<div class="cat"><h3>${cn}</h3>${
+    groups[cn].sort((a,b)=>a.n.localeCompare(b.n,'it')).map(o=>{
+      const split=both&&!(o.extra&&o.extra.length)?`<div class="split">${o.by.andrea?`<span class="a">Andrea ${fq(o,o.by.andrea)}</span>`:''}${o.by.silvia?`<span class="s">Silvia ${fq(o,o.by.silvia)}</span>`:''}</div>`:'';
+      const sub=subNames.has(o.n)?'<span class="tag">con sostituzioni</span>':'';
+      return `<label class="item"><input type="checkbox" data-n="${esc(o.key)}"><div class="nm">${esc(o.n)}${sub}${split}<div class="days-line">${daysLine(o,true)}</div></div><span class="q">${esc(lineQty(o))}</span></label>`}).join('')}</div>`).join('');
+}
+$('shopWho').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;shopWho=b.dataset.w;S.set('casa.shopWho',shopWho);renderShop()});
+$('shopDays').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const ds=b.dataset.d;
+  shopDates=shopDates.includes(ds)?shopDates.filter(x=>x!==ds):[...shopDates,ds];S.set('casa.shopDates',shopDates);renderShop()});
+document.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{const p=b.dataset.pre,g=gridStart();
+  shopDates=p==='next3'?range(today0(),3):p==='next7'?range(today0(),7):p==='this'?range(g,7):p==='next'?range(addD(g,7),7):[];
+  S.set('casa.shopDates',shopDates);renderShop()});
+let lastAgg=new Map();
+// annulla: le ultime azioni sulla lista restano annullabili per qualche secondo
+let undoStack=[];
+function pushUndo(txt,restore){undoStack.push({txt,restore});if(undoStack.length>15)undoStack.shift();showUndo()}
+function showUndo(){const u=undoStack[undoStack.length-1],bar=$('undoBar');clearTimeout(showUndo.t);
+  if(!u){bar.classList.remove('on');return}
+  $('undoTxt').textContent=u.txt+(undoStack.length>1?` (${undoStack.length})`:'');bar.classList.add('on');
+  showUndo.t=setTimeout(()=>{undoStack=[];bar.classList.remove('on')},7000)}
+$('undoBtn').onclick=()=>{const u=undoStack.pop();if(!u)return;u.restore();keepScroll(renderShop);showUndo()};
+const keyLabel=k=>{const o=lastAgg.get(k);return o?o.n:keyName(k)};
+$('shopList').addEventListener('change',e=>{const n=e.target.dataset.n;if(!n)return;
+  const prev=shopChk[n];
+  pushUndo((e.target.checked?'Preso: ':'Rimesso: ')+keyLabel(n),()=>{if(prev===undefined)delete shopChk[n];else shopChk[n]=prev;S.set('casa.shopChk',shopChk)});
+  if(e.target.checked){const o=lastAgg.get(n),ks=o?Object.keys(o.days).sort():[];shopChk[n]={at:iso(today0()),until:ks[ks.length-1]||null}}
+  else delete shopChk[n];
+  S.set('casa.shopChk',shopChk);keepScroll(renderShop)});
+function takenAction(e){const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.back){const k=d.back,prev=shopChk[k];pushUndo('Rimesso in lista: '+keyLabel(k),()=>{shopChk[k]=prev;S.set('casa.shopChk',shopChk)});delete shopChk[k];S.set('casa.shopChk',shopChk)}
+  else if(d.xback){const x=extras.find(x=>x.id===d.xback);if(x){x.on=false;const xid=x.id;pushUndo('Rimesso in lista: '+x.n,()=>{const y=extras.find(y=>y.id===xid);if(y)y.on=true;S.set('casa.extras',extras)})}S.set('casa.extras',extras)}
+  else if(d.del){const snap=clone(extras),x=extras.find(x=>x.id===d.del);extras=extras.filter(x=>x.id!==d.del);S.set('casa.extras',extras);
+    if(x)pushUndo('Eliminato: '+x.n,()=>{extras=snap;S.set('casa.extras',extras)})}
+  else return;
+  keepScroll(renderShop)}
+$('takenList').addEventListener('click',takenAction);
+$('shopFindRes').addEventListener('click',takenAction);
+function renderShopFind(){
+  const q=$('shopQ').value,nq=norm(q.trim());$('shopQClear').hidden=!q;
+  if(nq.length<2){$('shopFindRes').innerHTML='';return}
+  const rows=[];
+  Object.keys(shopChk).forEach(k=>{if(norm(keyName(k)).includes(nq))rows.push({n:keyName(k),html:`<button class="back" data-back="${esc(k)}">Rimetti</button>`,st:'già preso'})});
+  extras.forEach(x=>{if(norm(x.n).includes(nq))rows.push({n:x.n,html:x.on?`<button class="back" data-xback="${x.id}">Rimetti</button>`:'',st:x.on?'fuori dieta · già preso':'fuori dieta · in lista'})});
+  (lastAgg?[...lastAgg.values()]:[]).forEach(o=>{if(!shopChk[o.key]&&norm(o.n).includes(nq))rows.push({n:o.n,html:'',st:'già in lista'})});
+  rows.sort((a,b)=>(a.html?0:1)-(b.html?0:1)||a.n.localeCompare(b.n,'it'));
+  $('shopFindRes').innerHTML=rows.length?`<div class="cat findres">${rows.map(r=>`<div class="trow"><span class="nm">${esc(r.n)}<small>${r.st}</small></span><span></span><span></span>${r.html||'<span></span>'}</div>`).join('')}</div>`
+    :`<div class="hint findnone">Nessun prodotto corrisponde a "${esc(q.trim())}".</div>`;
+}
+$('shopQ').addEventListener('input',renderShopFind);
+$('shopQClear').onclick=()=>{$('shopQ').value='';renderShopFind();$('shopQ').focus()};
+$('resetAll').onclick=()=>{const b=$('resetAll');
+  if(!b.dataset.armed){b.dataset.armed='1';b.textContent='Tocca ancora per confermare';clearTimeout(b._t);b._t=setTimeout(()=>{delete b.dataset.armed;b.textContent='Reset: rimetti tutto nella lista'},3500);return}
+  clearTimeout(b._t);delete b.dataset.armed;b.textContent='Reset: rimetti tutto nella lista';
+  const snapChk=clone(shopChk),snapEx=clone(extras);
+  shopChk={};extras.forEach(x=>x.on=false);S.set('casa.shopChk',shopChk);S.set('casa.extras',extras);renderShop();window.scrollTo({top:0});
+  pushUndo('Tutto rimesso nella lista',()=>{shopChk=snapChk;extras=snapEx;S.set('casa.shopChk',shopChk);S.set('casa.extras',extras)})};
+$('extraForm').addEventListener('submit',e=>{e.preventDefault();const n=$('extraName').value.trim();if(!n){$('extraName').focus();return}
+  extras.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),n,q:$('extraQty').value.trim(),on:false});
+  S.set('casa.extras',extras);$('extraName').value='';$('extraQty').value='';$('extraName').focus();renderExtras()});
+$('extraList').addEventListener('click',e=>{const id=e.target.dataset&&e.target.dataset.del;if(!id)return;e.preventDefault();
+  const snap=clone(extras),x=extras.find(x=>x.id===id);
+  extras=extras.filter(x=>x.id!==id);S.set('casa.extras',extras);renderExtras();
+  if(x)pushUndo('Eliminato: '+x.n,()=>{extras=snap;S.set('casa.extras',extras)})});
+$('extraList').addEventListener('change',e=>{const id=e.target.dataset.x;if(!id)return;const x=extras.find(x=>x.id===id);
+  if(x){const was=x.on;x.on=e.target.checked;pushUndo((x.on?'Preso: ':'Rimesso: ')+x.n,()=>{const y=extras.find(y=>y.id===id);if(y)y.on=was;S.set('casa.extras',extras)})}
+  S.set('casa.extras',extras);keepScroll(renderShop)});
+function flash(t){$('toast').textContent=t;clearTimeout(flash.t);flash.t=setTimeout(()=>$('toast').textContent='',2500)}
+$('copyList').onclick=()=>{
+  const items=aggregate().filter(o=>!shopChk[o.key]),ex=extras.filter(x=>!x.on);
+  if(!items.length&&!ex.length){flash('Niente da copiare');return}
+  const groups={};items.forEach(o=>{(groups[catOfItem(o)]=groups[catOfItem(o)]||[]).push(o)});
+  const valid=new Set(gridDates());
+  const days=shopDates.filter(s=>valid.has(s)).sort().map(s=>short(pd(s))).join(', ');
+  const per=shopWho==='both'?'Andrea e Silvia':PEOPLE[shopWho].name;
+  let txt=`Lista della spesa · ${per}${days?` (${days})`:''}\n`;
+  txt+=CAT_ORDER.filter(c=>groups[c]).map(c=>`\n${c.toUpperCase()}\n`+groups[c].sort((a,b)=>a.n.localeCompare(b.n,'it')).map(o=>`- ${o.n}: ${lineQty(o)} · ${daysLine(o)}`).join('\n')).join('\n');
+  if(lastSubs.length)txt+=`\n\nSOSTITUZIONI (già sommate sopra)\n`+lastSubs.map(r=>`- ${r.n} al posto di ${r.orig} (${[...new Set(r.days)].map(dayLbl).join(', ')})`).join('\n');
+  if(ex.length)txt+=`\n\nFUORI DIETA\n`+ex.map(x=>`- ${x.n}${x.q?': '+x.q:''}`).join('\n');
+  const fallback=()=>{const ta=document.createElement('textarea');ta.className='copy';ta.value=txt;document.body.appendChild(ta);ta.select();
+    let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();flash(ok?'Lista copiata':'Copia non riuscita: seleziona il testo a mano')};
+  try{navigator.clipboard.writeText(txt).then(()=>flash('Lista copiata'),fallback)}catch(e){fallback()}
+};
+
+// ricerca
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’']/g,"'");
+const nextAbs=(p,idx)=>{const a0=Math.max(todayAbs(p),0);return a0+((idx-a0%14)+14)%14};
+function search(q){
+  const nq=norm(q.trim()),groups=new Map();
+  // prossimi 14 giorni di ogni dieta (quella in corso da oggi, quelle future dalla loro data di inizio)
+  WHO.forEach(p=>{const ph=PEOPLE[p].phases,t0=today0();ph.forEach((x,j)=>{
+    const end=j+1<ph.length?pd(ph[j+1].from):null;let d0=pd(x.from)>t0?pd(x.from):t0;if(end&&d0>=end)return;
+    for(let k=0;k<14;k++){const dd=addD(d0,k);if(end&&dd>=end)break;const abs=dayDiff(dd,pd(starts[p])),day=planAt(p,dd).day;
+    day.meals.forEach(([mn,items])=>items.forEach(it=>{
+      const add=(name,qty,dish)=>{const g=groups.get(name)||[];g.push({p,abs,mn,qty,dish});groups.set(name,g)};
+      if(it.ings){const dishHit=norm(it.n).includes(nq);
+        it.ings.forEach(g=>{if(dishHit||norm(g.n).includes(nq))add(g.n,fq(g),it.n)})}
+      else if(norm(it.n).includes(nq))add(it.n,fq(it),null)}))}})});
+  return [...groups.entries()].map(([n,hits])=>({n,hits:hits.sort((a,b)=>a.abs-b.abs||(a.p<b.p?-1:1))})).sort((a,b)=>a.n.localeCompare(b.n,'it'));
+}
+let lastView=S.get('casa.view','day'),searchWasOn=false;
+function renderSearch(){
+  const q=$('q').value,on=q.trim().length>=2;
+  $('qClear').hidden=!q;
+  $('searchView').hidden=!on;$('searchView').style.display=on?'flex':'';
+  $('dayView').style.display=on?'none':(lastView==='day'?'flex':'none');
+  $('shopView').hidden=on||lastView!=='shop';$('shopView').style.display=!on&&lastView==='shop'?'flex':'';
+  if(!on){if(searchWasOn){searchWasOn=false;if(lastView==='shop')renderShop();else renderDay()}return}
+  searchWasOn=true;
+  const res=search(q);
+  if(!res.length){$('searchView').innerHTML=`<div class="empty">Nessun alimento della dieta corrisponde a "${esc(q.trim())}".</div>`;return}
+  $('searchView').innerHTML=res.map(r=>`<div class="res"><h3>${esc(r.n)}<em>${r.hits.length} ${r.hits.length===1?'volta':'volte'} nel ciclo</em></h3>${gsBlock(r)}${
+    r.hits.map(h=>{const dt=absDate(h.p,h.abs),dd=DAYS[(dt.getDay()+6)%7];
+      const gs=gsubFor(h.p,r.n);
+      return `<button class="hit" data-p="${h.p}" data-a="${h.abs}"><span class="pp ${h.p}">${PEOPLE[h.p].name}</span><span class="wh">${dd} ${short(dt)} · ${h.mn}${h.dish?`<small>in ${esc(h.dish)}</small>`:''}</span><span class="q${gs?' struck':''}">${h.qty}</span></button>`}).join('')}</div>`).join('');
+  if(gFocus!=null){const f=$('gN'+gFocus);if(f)f.focus({preventScroll:true});gFocus=null}
+}
+// sostituzione in tutti i giorni (dalla ricerca)
+let gEdit=null,gFocus=null;
+const gsubLabel=s=>{const it=subItems(s);return it.map(i=>i.n.replace(/^./,x=>x.toUpperCase())+(i.q?' '+i.q:'')).join(' + ')+(it.length>1&&it.some(i=>!i.q)?' (in parti uguali)':'')};
+function gsBlock(r){
+  const people=WHO.filter(p=>r.hits.some(h=>h.p===p));
+  const cur=people.filter(p=>gsubFor(p,r.n)).map(p=>`<div class="gs"><span class="pp ${p}">${PEOPLE[p].name}</span><span class="wh">sempre al posto: <b>${esc(gsubLabel(gsubFor(p,r.n)))}</b></span><button class="minor" type="button" data-gdel="${p}" data-food="${esc(r.n)}">Togli</button></div>`).join('');
+  if(!gEdit||gEdit.food!==r.n)return cur+`<div class="gopen"><button class="gbtn" type="button" data-gopen="${esc(r.n)}" data-people="${people.join(',')}">⇄ Sostituisci in tutti i giorni</button></div>`;
+  const multi=gEdit.draft.length>1;
+  const rows=gEdit.draft.map((d,i)=>`<input type="text" id="gN${i}" data-gi="${i}" data-gf="n" placeholder="${i?'Altro prodotto…':'Al posto di '+esc(r.n)+' mangio…'}" value="${esc(d.n)}" aria-label="Alimento sostitutivo ${i+1}"><input type="text" id="gQ${i}" data-gi="${i}" data-gf="q" placeholder="${multi?'auto':'stessa'}" value="${esc(d.q)}" aria-label="Quantità ${i+1}"><button class="del${multi?'':' ghostdel'}" type="button" data-grm="${i}" aria-label="Togli questo prodotto">×</button>`).join('');
+  return cur+`<form class="subform gform" data-gform="1" autocomplete="off"><div class="gwho">Nella dieta di ${gEdit.people.map(p=>`<button type="button" class="chip" data-gp="${p}" aria-pressed="${gEdit.ps.has(p)}">${PEOPLE[p].name}</button>`).join('')}</div>${rows}<div class="acts"><button class="minor" type="button" data-gadd="1">+ Aggiungi un altro prodotto</button></div><div class="shint">Lascia vuota la quantità per usare quella prevista ogni giorno${multi?', divisa in parti uguali':''}. Le sostituzioni fatte su un singolo giorno restano valide.</div><div class="acts"><button class="btn" type="submit">Applica a tutti i giorni</button><button class="minor" type="button" data-gcancel="1">Annulla</button></div><div class="gerr" id="gErr"></div></form>`;
+}
+$('searchView').addEventListener('input',e=>{const d=e.target.dataset;if(!gEdit||!d.gf)return;const r=gEdit.draft[+d.gi];if(r)r[d.gf]=e.target.value});
+$('searchView').addEventListener('submit',e=>{e.preventDefault();if(!gEdit)return;
+  const items=gEdit.draft.map(r=>({n:r.n.trim(),q:r.q.trim()})).filter(r=>r.n);
+  if(!gEdit.ps.size){$('gErr').textContent='Scegli almeno una dieta.';return}
+  if(!items.length){$('gErr').textContent='Scrivi almeno un prodotto.';$('gN0').focus();return}
+  gEdit.ps.forEach(p=>{gsubs[p]=gsubs[p]||{};gsubs[p][gEdit.food]={items:items.map(x=>({...x}))}});
+  S.set('casa.gsubs',gsubs);gEdit=null;keepScroll(renderSearch)});
+$('q').addEventListener('input',renderSearch);
+$('q').addEventListener('keydown',e=>{if(e.key==='Escape'){$('q').value='';renderSearch()}});
+$('qClear').onclick=()=>{$('q').value='';renderSearch();$('q').focus()};
+$('searchView').addEventListener('click',e=>{
+  const g=e.target.closest('button');
+  if(g&&!g.classList.contains('hit')){const d=g.dataset;
+    if(d.gopen){const people=d.people.split(',');const ex=people.map(p=>gsubFor(p,d.gopen)).find(Boolean);
+      gEdit={food:d.gopen,people,ps:new Set(people),draft:ex?subItems(ex).map(x=>({n:x.n||'',q:x.q||''})):[{n:'',q:''}]};gFocus=0}
+    else if(d.gp&&gEdit){gEdit.ps.has(d.gp)?gEdit.ps.delete(d.gp):gEdit.ps.add(d.gp)}
+    else if(d.gadd&&gEdit){gEdit.draft.push({n:'',q:''});gFocus=gEdit.draft.length-1}
+    else if(d.grm!=null&&gEdit&&gEdit.draft.length>1){gEdit.draft.splice(+d.grm,1)}
+    else if(d.gcancel){gEdit=null}
+    else if(d.gdel){delete (gsubs[d.gdel]||{})[d.food];S.set('casa.gsubs',gsubs)}
+    else return;
+    e.preventDefault();keepScroll(renderSearch);return}
+  const b=e.target.closest('.hit');if(!b)return;gEdit=null;
+  who=b.dataset.p;S.set('casa.who',who);cur=+b.dataset.a;$('q').value='';view('day');window.scrollTo({top:0})});
+
+// viste
+function view(v){lastView=v;if(typeof undoStack!=='undefined'){undoStack=[];showUndo()}$('mainSearch').hidden=v==='shop';$('v-day').setAttribute('aria-pressed',v==='day');$('v-shop').setAttribute('aria-pressed',v==='shop');
+  $('q').value&&($('q').value='');$('qClear').hidden=true;$('searchView').hidden=true;$('searchView').style.display='';
+  $('dayView').style.display=v==='day'?'flex':'none';const sh=$('shopView');sh.hidden=v!=='shop';sh.style.display=v==='shop'?'flex':'';
+  document.body.classList.toggle('silvia',v==='day'&&who==='silvia');
+  S.set('casa.view',v);if(v==='shop')renderShop();else renderDay()}
+$('v-day').onclick=()=>view('day');$('v-shop').onclick=()=>view('shop');
+view(S.get('casa.view','day'));
+// aggiornamenti dall'altro telefono: alla riapertura dell'app e ogni 20 secondi
+function applyShared(){
+  checks=clone(synced['casa.checks'])||{andrea:{},silvia:{}};subs=clone(synced['casa.subs'])||{};gsubs=clone(synced['casa.gsubs'])||{};
+  shopChk=clone(synced['casa.shopChk'])||{};extras=clone(synced['casa.extras'])||[]}
+function busy(){const a=document.activeElement;return editing||gEdit||(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.type!=='checkbox')}
+// prende i dati dal server (dopo un controllo o un salvataggio) e ridisegna solo se qualcosa è cambiato
+function adopt(js){if(!js)return;let data;try{data=JSON.parse(js)}catch(e){return}
+  if(pending.length||inFlight||busy())return; // si riprova al prossimo controllo
+  const before=JSON.stringify(synced);synced=data;keepCopy();if(JSON.stringify(data)===before)return;applyShared();
+  if(lastView==='shop')keepScroll(renderShop);else if($('q').value.trim().length>=2)renderSearch();else keepScroll(renderDay)}
+// ogni 3 secondi chiede al server se c'è una versione nuova: se no, risponde subito senza leggere il Drive
+let pulling=false;
+function pull(){
+  if(!SERVER||pulling||document.hidden||pending.length||inFlight||busy())return;pulling=true;
+  SERVER.withSuccessHandler(js=>{pulling=false;adopt(js)}).withFailureHandler(()=>{pulling=false}).getAll(String(synced.__v||0))}
+if(SERVER){setInterval(pull,3000);document.addEventListener('visibilitychange',()=>{flushSave();pull()});window.addEventListener('pageshow',pull);
+  window.addEventListener('online',()=>{flushSave();pull()});flushSave();pull()}
+else setTimeout(()=>alert('Manca il link dei dati: in index.html incolla il link /exec di Apps Script nella riga API.'),300);
+// app installabile: tiene la pagina sul telefono per aprirsi subito
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
