@@ -66,11 +66,16 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
 .whorow{display:grid;grid-template-columns:1fr auto;gap:6px}
 .whorow .who button{padding:8px 10px;align-items:baseline}
 .whorow .who button span{white-space:nowrap;font-size:.7rem}
-body{padding-bottom:calc(var(--barh,190px) + 12px)}
+body{padding-bottom:calc(var(--barh,190px) + 24px)}
 .dayonly{display:flex;flex-direction:column;gap:8px}
 body:has(#dayView[style*="none"]) .dayonly{display:none}
-/* barra in basso: bianca, scelte selezionate nel colore della dieta */
-.nav{background:var(--surface);color:var(--ink);border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -4px 18px rgba(0,0,0,.08);padding-top:10px}
+/* barra in basso: pannello chiaro staccato dal resto (chiaro anche in tema scuro) */
+.nav{--bg:#f3f5f1;--surface:#ffffff;--ink:#1c2a22;--muted:#5f6f65;--line:#d3dbd5;--warn:#b5652a;--pa:#2f5d46;--ps:#8a4a6b;--accent:#2f5d46;--accent-soft:#e2ece5;color-scheme:light;
+  left:max(8px,calc((100% - 720px)/2));right:max(8px,calc((100% - 720px)/2));bottom:calc(8px + env(safe-area-inset-bottom,0px));
+  padding:10px;border:1px solid rgba(0,0,0,.06);border-radius:22px;background:#f7f9f6;color:var(--ink);
+  box-shadow:0 10px 34px rgba(0,0,0,.28),0 2px 8px rgba(0,0,0,.12)}
+body.silvia .nav{--accent:#8a4a6b;--accent-soft:#f1e4ea}
+@media (prefers-color-scheme:dark){.nav{box-shadow:0 10px 34px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08)}}
 .nav .navin{gap:9px}
 .nav .days button{padding:8px 0;border-radius:11px}
 .nav .days button b{font-size:.88rem}
@@ -92,11 +97,17 @@ body:has(#dayView[style*="none"]) .dayonly{display:none}
 body:has(#shopView:not([hidden])) .shoponly{display:flex}
 .nav #shopWho{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
 .nav #shopWho button{padding:9px 4px;font-weight:600;font-size:.88rem;border-radius:10px}
-.nav .grid14{gap:4px}
-.nav .grid14 .chip{padding:5px 0;border-radius:10px}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--barh,80px) + 10px);z-index:21;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:.85rem;min-height:0;pointer-events:none}
+.nav .dscroll{display:flex;gap:4px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;cursor:grab;overscroll-behavior-x:contain}
+.nav .dscroll::-webkit-scrollbar{display:none}
+.nav .dscroll.drag{cursor:grabbing;scroll-snap-type:none}
+.nav .dscroll .chip{flex:0 0 calc((100% - 24px)/7);scroll-snap-align:start;padding:8px 0;border-radius:11px;display:flex;flex-direction:column;align-items:center;user-select:none;-webkit-user-select:none}
+.nav .dscroll .chip b{font-size:.88rem;font-weight:600}
+.nav .dscroll .chip span{font:.72rem var(--mono);opacity:.8}
+.nav .dscroll .chip.today{box-shadow:inset 0 -3px 0 var(--warn)}
+.nav #shopWho button{padding:10px 4px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--barh,80px) + 18px + env(safe-area-inset-bottom,0px));z-index:21;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:.85rem;min-height:0;pointer-events:none}
 #toast:empty{display:none}
-#undoBar{bottom:calc(var(--barh,80px) + 10px)}
+#undoBar{bottom:calc(var(--barh,80px) + 18px + env(safe-area-inset-bottom,0px))}
 #shopList .item{grid-template-columns:22px 1fr}
 .nmrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .nmrow .q{white-space:normal;text-align:right;flex:none;max-width:55%}
@@ -352,10 +363,10 @@ textarea.copy{position:absolute;left:-9999px}
 <nav class="nav" id="bar" aria-label="Navigazione">
   <div class="navin">
     <div class="shoponly">
+      <div class="grid14 dscroll" id="shopDays" aria-label="Giorni da comprare"></div>
       <div class="seg" role="group" aria-label="Per chi fai la spesa" id="shopWho">
         <button data-w="both">Entrambi</button><button data-w="andrea">Andrea</button><button data-w="silvia">Silvia</button>
       </div>
-      <div class="grid14" id="shopDays"></div>
     </div>
     <div class="dayonly">
         <div class="dayrow">
@@ -810,8 +821,10 @@ function renderTaken(items){
 function renderShop(){
   document.querySelectorAll('#shopWho button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.w===shopWho));
   const t=iso(today0());
+  const sdEl=$('shopDays'),keepX=sdEl.scrollLeft,first=!sdEl.dataset.ready;
   $('shopDays').innerHTML=gridDates().map(ds=>{const dt=pd(ds);
     return `<button class="chip${ds===t?' today':''}" data-d="${ds}" aria-pressed="${shopDates.includes(ds)}"><b>${DAYS[(dt.getDay()+6)%7].slice(0,3)}</b><span>${short(dt)}</span></button>`}).join('');
+  if(first&&sdEl.offsetParent){sdEl.dataset.ready='1';requestAnimationFrame(()=>{const t=sdEl.querySelector('.today');sdEl.scrollLeft=t?t.offsetLeft-sdEl.offsetLeft:0})}else sdEl.scrollLeft=keepX;
   renderExtras();
   const all=aggregate();lastAgg=new Map(all.map(o=>[o.key,o]));renderTaken(all);renderShopFind();
   const items=all.filter(o=>!shopChk[o.key]);
@@ -830,6 +843,11 @@ function renderShop(){
       return `<label class="item"><input type="checkbox" data-n="${esc(o.key)}"><div class="nm"><div class="nmrow"><span>${esc(o.n)}${sub}</span><span class="q">${esc(lineQty(o))}</span></div>${split}<div class="days-line">${daysLine(o,true)}</div></div></label>`}).join('')}</div>`).join('');
 }
 $('shopWho').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;shopWho=b.dataset.w;S.set('casa.shopWho',shopWho);renderShop()});
+(()=>{const el=$('shopDays');let x0=0,s0=0,down=false,moved=false;
+  el.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')return;down=true;moved=false;x0=e.clientX;s0=el.scrollLeft});
+  addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-x0;if(Math.abs(dx)>4){moved=true;el.classList.add('drag')}if(moved)el.scrollLeft=s0-dx});
+  addEventListener('pointerup',()=>{if(!down)return;down=false;if(moved){el.classList.remove('drag');const w=el.querySelector('.chip').offsetWidth+4;el.scrollTo({left:Math.round(el.scrollLeft/w)*w,behavior:'smooth'})}});
+  el.addEventListener('click',e=>{if(moved){e.stopPropagation();e.preventDefault();moved=false}},true)})();
 $('shopDays').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const ds=b.dataset.d;
   shopDates=shopDates.includes(ds)?shopDates.filter(x=>x!==ds):[...shopDates,ds];S.set('casa.shopDates',shopDates);renderShop()});
 document.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{const p=b.dataset.pre,g=gridStart();
