@@ -69,31 +69,33 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
 body{padding-bottom:calc(var(--barh,190px) + 12px)}
 .dayonly{display:flex;flex-direction:column;gap:8px}
 body:has(#dayView[style*="none"]) .dayonly{display:none}
-/* barra in basso: colore pieno della persona, testo chiaro */
-.nav{background:var(--accent);color:var(--bg);border-top:0;border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.2);padding-top:10px}
+/* barra in basso: bianca, scelte selezionate nel colore della dieta */
+.nav{background:var(--surface);color:var(--ink);border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -4px 18px rgba(0,0,0,.08);padding-top:10px}
 .nav .navin{gap:9px}
-.nav .chip,.nav .days button,.nav .who button{background:color-mix(in srgb,var(--bg) 15%,transparent);border:1px solid transparent;color:var(--bg);box-shadow:none}
 .nav .days button{padding:8px 0;border-radius:11px}
-.nav .days button b{color:var(--bg);font-size:.88rem}
-.nav .days button span{color:var(--bg);opacity:.8;font-size:.72rem}
-.nav .days button[aria-pressed="true"]{background:var(--bg);border-color:var(--bg)}
-.nav .days button[aria-pressed="true"] b,.nav .days button[aria-pressed="true"] span{color:var(--accent);opacity:1}
-.nav .days button.today{box-shadow:inset 0 -3px 0 var(--warn)}
-.nav .arrow{font-size:1.3rem;color:var(--bg)}
-.nav .who button b,.nav .who button[data-p] b{color:var(--bg);font-size:1rem}
-.nav .who button span{color:var(--bg);opacity:.8}
-.nav .who button[aria-pressed="true"]{background:var(--bg);border-color:var(--bg);box-shadow:none}
-.nav .who button[aria-pressed="true"] b{color:var(--accent)} .nav .who button[aria-pressed="true"] span{color:var(--muted);opacity:1}
+.nav .days button b{font-size:.88rem}
+.nav .arrow{font-size:1.3rem}
 .nav #goToday{font-weight:700;font-size:.9rem;padding:0 11px}
+.nav .who button[aria-pressed="true"][data-p]{background:var(--accent);border-color:var(--accent);box-shadow:none}
+.nav .who button[aria-pressed="true"] b,.nav .who button[aria-pressed="true"] span{color:var(--bg)}
 .nav .whorow .who{min-width:0}
 .nav .whorow .who button{min-width:0;padding:9px 9px;gap:6px}
-.nav .who button b,.nav .who button[data-p] b{font-size:.95rem}
+.nav .who button b{font-size:.95rem}
 .nav .whorow .who button span{font-size:.7rem;white-space:nowrap}
 @media (max-width:400px){.nav .whorow .who button span small{display:none}}
-.nav .views{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:color-mix(in srgb,var(--ink) 22%,transparent);border-radius:14px;padding:4px}
-.nav .views button{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:11px;color:var(--bg);font:700 1rem var(--body)}
+.nav .views{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:4px}
+.nav .views button{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border:0;border-radius:11px;background:transparent;color:var(--muted);font:700 1rem var(--body);cursor:pointer}
 .nav .views button svg{width:21px;height:21px}
-.nav .views button[aria-pressed="true"]{background:var(--bg);color:var(--accent)}
+.nav .views button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+/* spesa: per chi e giorni nella barra */
+.shoponly{display:none;flex-direction:column;gap:8px}
+body:has(#shopView:not([hidden])) .shoponly{display:flex}
+.nav #shopWho{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.nav #shopWho button{padding:9px 4px;font-weight:600;font-size:.88rem;border-radius:10px}
+.nav .grid14{gap:4px}
+.nav .grid14 .chip{padding:5px 0;border-radius:10px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--barh,80px) + 10px);z-index:21;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:.85rem;min-height:0;pointer-events:none}
+#toast:empty{display:none}
 #undoBar{bottom:calc(var(--barh,80px) + 10px)}
 #shopList .item{grid-template-columns:22px 1fr}
 .nmrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -325,26 +327,6 @@ textarea.copy{position:absolute;left:-9999px}
       <div id="shopFindRes"></div>
     </div>
 
-    <div class="picker">
-      <h4>Per chi fai la spesa</h4>
-      <div class="seg" role="group" aria-label="Per chi" id="shopWho">
-        <button data-w="both">Entrambi</button><button data-w="andrea">Solo Andrea</button><button data-w="silvia">Solo Silvia</button>
-      </div>
-      <h4>Giorni da comprare</h4>
-      <div class="chips">
-        <button class="chip" data-pre="next3">Prossimi 3 giorni</button>
-        <button class="chip" data-pre="next7">Prossimi 7 giorni</button>
-        <button class="chip" data-pre="this">Questa settimana</button>
-        <button class="chip" data-pre="next">Prossima settimana</button>
-        <button class="chip" data-pre="none">Nessuno</button>
-      </div>
-      <div class="grid14" id="shopDays"></div>
-    </div>
-    <div class="actions">
-      <button class="btn" id="copyList">Copia lista</button>
-      <span class="toast" id="toast"></span>
-    </div>
-
     <div class="cat extra">
       <h3>Fuori dieta</h3>
       <form class="addrow" id="extraForm" autocomplete="off">
@@ -369,6 +351,12 @@ textarea.copy{position:absolute;left:-9999px}
 
 <nav class="nav" id="bar" aria-label="Navigazione">
   <div class="navin">
+    <div class="shoponly">
+      <div class="seg" role="group" aria-label="Per chi fai la spesa" id="shopWho">
+        <button data-w="both">Entrambi</button><button data-w="andrea">Andrea</button><button data-w="silvia">Silvia</button>
+      </div>
+      <div class="grid14" id="shopDays"></div>
+    </div>
     <div class="dayonly">
         <div class="dayrow">
           <button class="chip arrow" id="wPrev" aria-label="Settimana precedente">‹</button>
@@ -389,6 +377,7 @@ textarea.copy{position:absolute;left:-9999px}
     </div>
   </div>
 </nav>
+<span class="toast" id="toast" role="status" aria-live="polite"></span>
 <div class="undo" id="undoBar" role="status" aria-live="polite"><span class="ut" id="undoTxt"></span><button type="button" id="undoBtn">Annulla</button></div>
 <script>
 const i=(n,q,u='g',tip)=>({n,q,u,tip});
@@ -901,7 +890,7 @@ $('extraList').addEventListener('change',e=>{const id=e.target.dataset.x;if(!id)
   if(x){const was=x.on;x.on=e.target.checked;pushUndo((x.on?'Preso: ':'Rimesso: ')+x.n,()=>{const y=extras.find(y=>y.id===id);if(y)y.on=was;S.set('casa.extras',extras)})}
   S.set('casa.extras',extras);keepScroll(renderShop)});
 function flash(t){$('toast').textContent=t;clearTimeout(flash.t);flash.t=setTimeout(()=>$('toast').textContent='',2500)}
-$('copyList').onclick=()=>{
+if($('copyList'))$('copyList').onclick=()=>{
   const items=aggregate().filter(o=>!shopChk[o.key]),ex=extras.filter(x=>!x.on);
   if(!items.length&&!ex.length){flash('Niente da copiare');return}
   const groups={};items.forEach(o=>{(groups[catOfItem(o)]=groups[catOfItem(o)]||[]).push(o)});
