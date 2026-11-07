@@ -58,7 +58,17 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
 .who button[aria-pressed="true"][data-p="andrea"]{border-color:var(--pa);box-shadow:inset 0 0 0 1px var(--pa)}
 .who button[aria-pressed="true"][data-p="silvia"]{border-color:var(--ps);box-shadow:inset 0 0 0 1px var(--ps)}
 .who button[data-p="andrea"] b{color:var(--pa)} .who button[data-p="silvia"] b{color:var(--ps)}
-.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line)}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:15;background:var(--bg);border-top:1px solid var(--line);box-shadow:0 -6px 18px rgba(0,0,0,.06);
+  padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.navin{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:7px}
+.dayrow{display:grid;grid-template-columns:auto 1fr auto;gap:5px;align-items:stretch}
+.dayrow .arrow{padding:0 9px}
+.whorow{display:grid;grid-template-columns:1fr auto;gap:6px}
+.whorow .who button{padding:8px 10px;align-items:baseline}
+.whorow .who button span{white-space:nowrap;font-size:.7rem}
+#dayView{padding-bottom:128px}
+.dayhead .wklabel{flex-direction:row;gap:6px;align-items:baseline;margin-top:2px;min-width:0;flex-wrap:wrap}
+.dayhead .wklabel b{font-size:.82rem;color:var(--muted);font-weight:500}
 .weeks{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .seg{display:flex;gap:4px;flex-wrap:wrap}
 .seg button,.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 .82rem var(--body);padding:6px 11px;border-radius:8px;cursor:pointer}
@@ -115,7 +125,14 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
 .subform .btn{padding:6px 12px}
 .row.on .nm,.row.on .q,.row.on .ingl{color:var(--done)}
 .row.on .nm .orig,.row.on>.item>.q{text-decoration:line-through}
-.days-line{font:.74rem var(--mono);color:var(--muted);margin-top:3px;font-weight:400}
+.days-line{font:.74rem var(--mono);color:var(--muted);margin-top:4px;font-weight:400;display:flex;flex-direction:column;gap:3px}
+.dline{display:grid;grid-template-columns:3.9em 1fr auto;align-items:baseline;gap:6px}
+.dline .mid{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 5px;min-width:0}
+.dline .dq{font-weight:500;color:var(--ink);white-space:nowrap}
+.ml{--mc:var(--m-other);--mcs:var(--m-other-soft);font:600 .68rem var(--body);text-transform:uppercase;letter-spacing:.04em;color:var(--mc);background:var(--mcs);padding:1px 6px;border-radius:4px}
+.ml.m-col{--mc:var(--m-col);--mcs:var(--m-col-soft)} .ml.m-snack{--mc:var(--m-snack);--mcs:var(--m-snack-soft)}
+.ml.m-pranzo{--mc:var(--m-pranzo);--mcs:var(--m-pranzo-soft)} .ml.m-cena{--mc:var(--m-cena);--mcs:var(--m-cena-soft)}
+.dish{font:italic .76rem var(--body);color:var(--muted)}
 .cat.subs{border-color:var(--warn)} .cat.subs h3{color:var(--warn)}
 .srow{grid-template-columns:1fr auto}
 .dl{color:var(--m-cena);font-weight:600}
@@ -241,23 +258,24 @@ textarea.copy{position:absolute;left:-9999px}
   <section id="searchView" hidden style="flex-direction:column;gap:10px"></section>
 
   <section id="dayView" style="display:flex;flex-direction:column;gap:14px">
-    <div class="nav">
-      <div class="who" role="group" aria-label="Di chi è il piano">
-        <button data-p="andrea" id="who-andrea"><b>Andrea</b><span>2.100 kcal</span></button>
-        <button data-p="silvia" id="who-silvia"><b>Silvia</b><span>1.650 kcal</span></button>
-      </div>
-      <div class="weeks">
-        <div class="wk">
+    <nav class="nav" aria-label="Persona e giorno">
+      <div class="navin">
+        <div class="dayrow">
           <button class="chip arrow" id="wPrev" aria-label="Settimana precedente">‹</button>
-          <div class="wklabel"><b id="wkNum"></b><span id="wkPlan"></span></div>
+          <div class="days" id="days"></div>
           <button class="chip arrow" id="wNext" aria-label="Settimana successiva">›</button>
         </div>
-        <button class="chip" id="goToday">Vai a oggi</button>
+        <div class="whorow">
+          <div class="who" role="group" aria-label="Di chi è il piano">
+            <button data-p="andrea" id="who-andrea"><b>Andrea</b><span>2.100 kcal</span></button>
+            <button data-p="silvia" id="who-silvia"><b>Silvia</b><span>1.650 kcal</span></button>
+          </div>
+          <button class="chip" id="goToday">Oggi</button>
+        </div>
       </div>
-      <div class="days" id="days"></div>
-    </div>
+    </nav>
     <div id="banner" class="banner" hidden></div>
-    <div class="dayhead"><h2 id="dayTitle"></h2><span class="prog" id="prog"></span></div>
+    <div class="dayhead"><div><h2 id="dayTitle"></h2><div class="wklabel"><b id="wkNum"></b> <span id="wkPlan"></span></div></div><span class="prog" id="prog"></span></div>
     <div class="bar"><i id="progBar"></i></div>
     <div id="meals" style="display:flex;flex-direction:column;gap:10px"></div>
     <div class="macros" id="macros"></div>
@@ -506,6 +524,11 @@ const catOf=n=>{const c=Object.keys(CATS).find(c=>CATS[c].includes(n));if(c)retu
   for(const [cat,kws] of CAT_KW)for(const k of kws){const i=w.indexOf(' '+k);if(i>=0&&i<bi){bi=i;best=cat}}
   return best||'Dispensa e altro'};
 const CAT_ORDER=['Sostituzioni',...Object.keys(CATS),'Dispensa e altro'];
+// nome nella spesa: per i piatti pronti o particolari si compra l'ingrediente giusto (modificabile qui)
+const SHOP_AS={'Vellutata di zucca':'Zucca','Vellutata di asparagi':'Asparagi','Tartare di salmone|Salmone fresco':'Salmone per tartare'};
+CATS['Verdure'].push('Zucca','Asparagi');CATS['Carne, pesce, uova e formaggi'].push('Salmone per tartare');
+const shopName=(g,it)=>SHOP_AS[(it.ings?it.n+'|':'')+g.n]||g.n;
+const MEAL_SHORT={'Colazione':'colazione','Metà mattina':'metà mattina','Pranzo':'pranzo','Merenda':'merenda','Cena':'cena','Spuntino serale':'spuntino','Arco della giornata':'in giornata','Pasto aggiuntivo':'pasto extra'};
 
 const frac=q=>{const w=Math.floor(q),h=q-w>0;return (w?w:'')+(h?(w?' e ½':'½'):'')};
 function fq(x,q=x.q){
@@ -696,31 +719,42 @@ function partsTxt(ps){const sums=new Map(),tx=[];ps.forEach(x=>{if(x.v!=null)sum
   return [...[...sums].map(([u,v])=>fq({u},v)),...tx].join(' + ')}
 function aggregate(){
   const m=new Map(),subsList=new Map();
-  const add=(name,u,p,ds,q,txt)=>{const o=m.get(name)||{key:name,n:name,u,q:0,by:{andrea:0,silvia:0},days:{},dtext:{},extra:[]};
+  const add=(name,u,p,ds,q,txt,ctx)=>{const o=m.get(name)||{key:name,n:name,u,q:0,by:{andrea:0,silvia:0},days:{},dtext:{},extra:[],uses:{}};
+    if(ctx){const L=(o.uses[ds]=o.uses[ds]||[]);if(!L.some(x=>x.meal===ctx.meal&&x.dish===ctx.dish))L.push(ctx)}
     if(txt!=null){o.extra.push(txt);(o.dtext[ds]=o.dtext[ds]||[]).push(txt)}
     else{o.q+=q;o.by[p]+=q;o.days[ds]=(o.days[ds]||0)+q}
     m.set(name,o)};
   selDates().forEach(ds=>{const dt=pd(ds);people().forEach(p=>{
     const plan=planAt(p,dt).day,sd=((subs[p]||{})[ds])||{};
-    plan.meals.forEach(([,items],mi)=>items.forEach((it,ii)=>{const id=mi+'.'+ii;
+    plan.meals.forEach(([mn,items],mi)=>items.forEach((it,ii)=>{const id=mi+'.'+ii;
       (it.ings?it.ings.map((g,gi)=>[g,id+'.'+gi]):[[it,id]]).forEach(([g,gid])=>{
-        const s=sd[gid]||gsubFor(p,g.n);
-        if(!s){add(g.n,g.u,p,ds,g.q);return}
+        const s=sd[gid]||gsubFor(p,g.n),sn=shopName(g,it);
+        const ctx={meal:mn,dish:it.ings?it.n:(sn!==g.n?g.n:null)};
+        if(!s){add(sn,g.u,p,ds,g.q,null,ctx);return}
         resolveSub(s,g).forEach(r=>{
           const k=r.name+'|'+g.n;const e=subsList.get(k)||{n:r.name,orig:g.n,days:[],parts:[]};e.days.push(ds);e.parts.push({v:r.v,u:r.u,txt:r.txt});subsList.set(k,e);
-          if(r.v!=null)add(r.name,r.u,p,ds,r.v);else add(r.name,r.u,p,ds,0,r.txt)})})}))})});
+          const c2={meal:mn,dish:ctx.dish||'al posto di '+g.n};if(r.v!=null)add(r.name,r.u,p,ds,r.v,null,c2);else add(r.name,r.u,p,ds,0,r.txt,c2)})})}))})});
   lastSubs=[...subsList.values()].sort((a,b)=>a.n.localeCompare(b.n,'it'));
   return [...m.values()];
 }
 function selDates(){const valid=new Set(gridDates());return shopDates.filter(s=>valid.has(s)).sort()}
 const dayLbl=ds=>{const d=pd(ds);return DAYS[(d.getDay()+6)%7].slice(0,3)+' '+d.getDate()};
 const dayTag=(ds,html)=>ds===iso(today0())?(html?'<b class="oggi">oggi</b>':'oggi'):(html?`<span class="dl">${dayLbl(ds)}</span>`:dayLbl(ds));
+// per che pasto (e che piatto) serve: "cena · Tartare di salmone"
+function useTxt(L,html){const E=html?esc:(x=>x);if(!L||!L.length)return '';
+  const meals=[...new Set(L.map(x=>x.meal))],dishes=[...new Set(L.map(x=>x.dish).filter(Boolean))];
+  const m=meals.map(mn=>html?`<span class="ml ${mealCls(mn)}">${esc(MEAL_SHORT[mn]||mn.toLowerCase())}</span>`:(MEAL_SHORT[mn]||mn.toLowerCase())).join(html?' ':' e ');
+  return m+(dishes.length?(html?' <i class="dish">'+E(dishes.join(', '))+'</i>':' ('+dishes.join(', ')+')'):'')}
 function daysLine(o,html){
   const E=html?esc:(x=>x);
   const ks=[...new Set([...Object.keys(o.days),...Object.keys(o.dtext||{})])].sort(),nSel=selDates().length;
-  const plain=!Object.keys(o.dtext||{}).length;
-  if(plain&&ks.length===nSel&&nSel>2&&new Set(ks.map(k=>o.days[k])).size===1)return `tutti i giorni · ${fq(o,o.days[ks[0]])} al giorno`;
-  return ks.map(k=>`${dayTag(k,html)} ${E([o.days[k]?fq(o,o.days[k]):null,...((o.dtext||{})[k]||[])].filter(Boolean).join(' + '))}`).join(' · ');
+  const plain=!Object.keys(o.dtext||{}).length,U=o.uses||{};
+  if(plain&&ks.length===nSel&&nSel>2&&new Set(ks.map(k=>o.days[k])).size===1){
+    const all=[];ks.forEach(k=>(U[k]||[]).forEach(x=>{if(!all.some(y=>y.meal===x.meal&&y.dish===x.dish))all.push(x)}));
+    const u=useTxt(all,html);return html?`<span class="dline"><span class="dd">tutti</span><span class="mid">${u||'tutti i giorni'}</span><b class="dq">${fq(o,o.days[ks[0]])} al giorno</b></span>`:`tutti i giorni${u?' · '+u:''} · ${fq(o,o.days[ks[0]])} al giorno`}
+  const one=k=>{const qty=E([o.days[k]?fq(o,o.days[k]):null,...((o.dtext||{})[k]||[])].filter(Boolean).join(' + ')),u=useTxt(U[k],html);
+    return html?`<span class="dline"><span class="dd">${dayTag(k,true)}</span><span class="mid">${u}</span><b class="dq">${qty}</b></span>`:`${dayTag(k,false)}${u?' '+u:''} ${qty}`};
+  return ks.map(one).join(html?'':' · ');
 }
 const catOfItem=o=>catOf(o.n);
 function lineQty(o,q=o.q){
