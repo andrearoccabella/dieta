@@ -66,7 +66,39 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
 .whorow{display:grid;grid-template-columns:1fr auto;gap:6px}
 .whorow .who button{padding:8px 10px;align-items:baseline}
 .whorow .who button span{white-space:nowrap;font-size:.7rem}
-#dayView{padding-bottom:128px}
+body{padding-bottom:calc(var(--barh,190px) + 12px)}
+.dayonly{display:flex;flex-direction:column;gap:8px}
+body:has(#dayView[style*="none"]) .dayonly{display:none}
+/* barra in basso: colore pieno della persona, testo chiaro */
+.nav{background:var(--accent);color:var(--bg);border-top:0;border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.2);padding-top:10px}
+.nav .navin{gap:9px}
+.nav .chip,.nav .days button,.nav .who button{background:color-mix(in srgb,var(--bg) 15%,transparent);border:1px solid transparent;color:var(--bg);box-shadow:none}
+.nav .days button{padding:8px 0;border-radius:11px}
+.nav .days button b{color:var(--bg);font-size:.88rem}
+.nav .days button span{color:var(--bg);opacity:.8;font-size:.72rem}
+.nav .days button[aria-pressed="true"]{background:var(--bg);border-color:var(--bg)}
+.nav .days button[aria-pressed="true"] b,.nav .days button[aria-pressed="true"] span{color:var(--accent);opacity:1}
+.nav .days button.today{box-shadow:inset 0 -3px 0 var(--warn)}
+.nav .arrow{font-size:1.3rem;color:var(--bg)}
+.nav .who button b,.nav .who button[data-p] b{color:var(--bg);font-size:1rem}
+.nav .who button span{color:var(--bg);opacity:.8}
+.nav .who button[aria-pressed="true"]{background:var(--bg);border-color:var(--bg);box-shadow:none}
+.nav .who button[aria-pressed="true"] b{color:var(--accent)} .nav .who button[aria-pressed="true"] span{color:var(--muted);opacity:1}
+.nav #goToday{font-weight:700;font-size:.9rem;padding:0 11px}
+.nav .whorow .who{min-width:0}
+.nav .whorow .who button{min-width:0;padding:9px 9px;gap:6px}
+.nav .who button b,.nav .who button[data-p] b{font-size:.95rem}
+.nav .whorow .who button span{font-size:.7rem;white-space:nowrap}
+@media (max-width:400px){.nav .whorow .who button span small{display:none}}
+.nav .views{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:color-mix(in srgb,var(--ink) 22%,transparent);border-radius:14px;padding:4px}
+.nav .views button{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:11px;color:var(--bg);font:700 1rem var(--body)}
+.nav .views button svg{width:21px;height:21px}
+.nav .views button[aria-pressed="true"]{background:var(--bg);color:var(--accent)}
+#undoBar{bottom:calc(var(--barh,80px) + 10px)}
+#shopList .item{grid-template-columns:22px 1fr}
+.nmrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.nmrow .q{white-space:normal;text-align:right;flex:none;max-width:55%}
+#shopList .item .nm{min-width:0;flex:1}
 .dayhead .wklabel{flex-direction:row;gap:6px;align-items:baseline;margin-top:2px;min-width:0;flex-wrap:wrap}
 .dayhead .wklabel b{font-size:.82rem;color:var(--muted);font-weight:500}
 .weeks{display:flex;gap:8px;align-items:center;justify-content:space-between}
@@ -126,8 +158,11 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
 .row.on .nm,.row.on .q,.row.on .ingl{color:var(--done)}
 .row.on .nm .orig,.row.on>.item>.q{text-decoration:line-through}
 .days-line{font:.74rem var(--mono);color:var(--muted);margin-top:4px;font-weight:400;display:flex;flex-direction:column;gap:3px}
-.dline{display:grid;grid-template-columns:3.9em 1fr auto;align-items:baseline;gap:6px}
-.dline .mid{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 5px;min-width:0}
+.dline{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px}
+.dline .dd{flex:0 0 3.9em}
+.dline .mid{flex:1 1 7em;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 5px;min-width:0}
+.dline .dq{margin-left:auto}
+.ml{white-space:nowrap}
 .dline .dq{font-weight:500;color:var(--ink);white-space:nowrap}
 .ml{--mc:var(--m-other);--mcs:var(--m-other-soft);font:600 .68rem var(--body);text-transform:uppercase;letter-spacing:.04em;color:var(--mc);background:var(--mcs);padding:1px 6px;border-radius:4px}
 .ml.m-col{--mc:var(--m-col);--mcs:var(--m-col-soft)} .ml.m-snack{--mc:var(--m-snack);--mcs:var(--m-snack-soft)}
@@ -244,10 +279,6 @@ textarea.copy{position:absolute;left:-9999px}
       <h1>Dieta Andrea e Silvia</h1>
       <p class="sub">Piani Dott.ssa Caldini · 16 settimane, il piano si ripete ogni 2</p>
     </div>
-    <div class="views" role="group" aria-label="Vista">
-      <button id="v-day" aria-pressed="true">Dieta</button>
-      <button id="v-shop" aria-pressed="false">Spesa</button>
-    </div>
   </header>
 
   <div class="search" role="search" id="mainSearch">
@@ -258,22 +289,6 @@ textarea.copy{position:absolute;left:-9999px}
   <section id="searchView" hidden style="flex-direction:column;gap:10px"></section>
 
   <section id="dayView" style="display:flex;flex-direction:column;gap:14px">
-    <nav class="nav" aria-label="Persona e giorno">
-      <div class="navin">
-        <div class="dayrow">
-          <button class="chip arrow" id="wPrev" aria-label="Settimana precedente">‹</button>
-          <div class="days" id="days"></div>
-          <button class="chip arrow" id="wNext" aria-label="Settimana successiva">›</button>
-        </div>
-        <div class="whorow">
-          <div class="who" role="group" aria-label="Di chi è il piano">
-            <button data-p="andrea" id="who-andrea"><b>Andrea</b><span>2.100 kcal</span></button>
-            <button data-p="silvia" id="who-silvia"><b>Silvia</b><span>1.650 kcal</span></button>
-          </div>
-          <button class="chip" id="goToday">Oggi</button>
-        </div>
-      </div>
-    </nav>
     <div id="banner" class="banner" hidden></div>
     <div class="dayhead"><div><h2 id="dayTitle"></h2><div class="wklabel"><b id="wkNum"></b> <span id="wkPlan"></span></div></div><span class="prog" id="prog"></span></div>
     <div class="bar"><i id="progBar"></i></div>
@@ -352,6 +367,28 @@ textarea.copy{position:absolute;left:-9999px}
   </section>
 </div>
 
+<nav class="nav" id="bar" aria-label="Navigazione">
+  <div class="navin">
+    <div class="dayonly">
+        <div class="dayrow">
+          <button class="chip arrow" id="wPrev" aria-label="Settimana precedente">‹</button>
+          <div class="days" id="days"></div>
+          <button class="chip arrow" id="wNext" aria-label="Settimana successiva">›</button>
+        </div>
+        <div class="whorow">
+          <div class="who" role="group" aria-label="Di chi è il piano">
+            <button data-p="andrea" id="who-andrea"><b>Andrea</b><span>2.100 kcal</span></button>
+            <button data-p="silvia" id="who-silvia"><b>Silvia</b><span>1.650 kcal</span></button>
+          </div>
+          <button class="chip" id="goToday">Oggi</button>
+        </div>
+      </div>
+    <div class="views" role="group" aria-label="Vista">
+      <button id="v-day" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Dieta</button>
+      <button id="v-shop" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.5l2.2 10.5h10.6L20.5 7H6.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.5" cy="19" r="1.6" fill="currentColor"/><circle cx="17" cy="19" r="1.6" fill="currentColor"/></svg>Spesa</button>
+    </div>
+  </div>
+</nav>
 <div class="undo" id="undoBar" role="status" aria-live="polite"><span class="ut" id="undoTxt"></span><button type="button" id="undoBtn">Annulla</button></div>
 <script>
 const i=(n,q,u='g',tip)=>({n,q,u,tip});
@@ -632,7 +669,7 @@ function renderDay(){
   $('startWho').textContent=P.name;$('startDate').textContent=pd(pa.ph.from).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   $('wkNum').textContent=`Settimana ${pa.week+1} di ${WEEKS}`;
   $('wkPlan').textContent=`piano: settimana ${w+1}${P.phases.length>1?' · '+pa.ph.label:''}`;
-  WHO.forEach(p=>{$('who-'+p).querySelector('span').textContent=phaseAt(p,absDate(who,cur)).kcal+' kcal'});
+  WHO.forEach(p=>{$('who-'+p).querySelector('span').innerHTML=phaseAt(p,absDate(who,cur)).kcal+'<small> kcal</small>'});
   $('wPrev').disabled=wk===0;$('wNext').disabled=wk>=maxWeek(who)-1;
   $('days').innerHTML=DAYS.map((n,k)=>{const idx=wk*7+k,dt=absDate(who,idx);
     return `<button data-i="${idx}" aria-pressed="${idx===cur}" class="${idx===tA?'today':''}"><b>${n.slice(0,3)}</b><span>${short(dt)}</span></button>`}).join('');
@@ -801,7 +838,7 @@ function renderShop(){
     groups[cn].sort((a,b)=>a.n.localeCompare(b.n,'it')).map(o=>{
       const split=both&&!(o.extra&&o.extra.length)?`<div class="split">${o.by.andrea?`<span class="a">Andrea ${fq(o,o.by.andrea)}</span>`:''}${o.by.silvia?`<span class="s">Silvia ${fq(o,o.by.silvia)}</span>`:''}</div>`:'';
       const sub=subNames.has(o.n)?'<span class="tag">con sostituzioni</span>':'';
-      return `<label class="item"><input type="checkbox" data-n="${esc(o.key)}"><div class="nm">${esc(o.n)}${sub}${split}<div class="days-line">${daysLine(o,true)}</div></div><span class="q">${esc(lineQty(o))}</span></label>`}).join('')}</div>`).join('');
+      return `<label class="item"><input type="checkbox" data-n="${esc(o.key)}"><div class="nm"><div class="nmrow"><span>${esc(o.n)}${sub}</span><span class="q">${esc(lineQty(o))}</span></div>${split}<div class="days-line">${daysLine(o,true)}</div></div></label>`}).join('')}</div>`).join('');
 }
 $('shopWho').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;shopWho=b.dataset.w;S.set('casa.shopWho',shopWho);renderShop()});
 $('shopDays').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const ds=b.dataset.d;
@@ -957,6 +994,9 @@ function view(v){lastView=v;if(typeof undoStack!=='undefined'){undoStack=[];show
   S.set('casa.view',v);if(v==='shop')renderShop();else renderDay()}
 $('v-day').onclick=()=>view('day');$('v-shop').onclick=()=>view('shop');
 view(S.get('casa.view','day'));
+// altezza della barra in basso, per lasciare spazio al contenuto e al tasto Annulla
+(()=>{const b=$('bar'),set=()=>document.documentElement.style.setProperty('--barh',b.offsetHeight+'px');set();
+  if('ResizeObserver' in window)new ResizeObserver(set).observe(b);else addEventListener('resize',set)})();
 // aggiornamenti dall'altro telefono: alla riapertura dell'app e ogni 20 secondi
 function applyShared(){
   checks=clone(synced['casa.checks'])||{andrea:{},silvia:{}};subs=clone(synced['casa.subs'])||{};gsubs=clone(synced['casa.gsubs'])||{};
